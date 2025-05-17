@@ -5,9 +5,15 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
+	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"sync"
+	"time"
 
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/db"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/log"
@@ -42,14 +48,52 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	}
 
 	slog.SetDefault(log.NewLogger(cfg, w))
-	slog.Error("error", slog.String("path", "api/v1"))
 
 	_, err = db.OpenDB(ctx, cfg)
 	if err != nil {
 		return err
 	}
 
-	slog.Info("database connected")
+	slog.Info("database connection pool establish")
+
+	handler := api.NewHTTPServer(cfg)
+	slog.Debug("handler created")
+
+	httpServer := http.Server{
+		Addr:    net.JoinHostPort(cfg.Server.Host, strconv.Itoa(cfg.Server.Port)),
+		Handler: handler,
+	}
+
+	go func() {
+		slog.Info("http server running",
+			slog.String("host", cfg.Server.Host),
+			slog.Int("port", cfg.Server.Port),
+			slog.String("app-env", cfg.AppEnviroment),
+			slog.Int("app-version", cfg.AppVersion),
+		)
+
+		err := httpServer.ListenAndServe()
+		if err != http.ErrServerClosed {
+			slog.Error("error while starting http server", slog.Any("err", err))
+		}
+	}()
+
+	var wg sync.WaitGroup
+
+	<-ctx.Done()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err = httpServer.Shutdown(shutdownCtx)
+	if err != nil {
+		return err
+	}
+
+	slog.Info("closing http server", slog.String("addrs", httpServer.Addr))
+
+	wg.Wait()
+
+	slog.Info("http server stop", slog.String("addrs", httpServer.Addr))
 
 	return nil
 }

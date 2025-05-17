@@ -6,7 +6,7 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 )
 
-func newServer(cfg *config.Config) http.Handler {
+func NewHTTPServer(cfg *config.Config) http.Handler {
 
 	mux := http.NewServeMux()
 	AddRoute(mux, cfg)

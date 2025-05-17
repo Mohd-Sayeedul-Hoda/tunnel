@@ -1,9 +1,7 @@
 package config
 
 import (
-	"errors"
 	"flag"
-	"fmt"
 	"strconv"
 	"strings"
 )

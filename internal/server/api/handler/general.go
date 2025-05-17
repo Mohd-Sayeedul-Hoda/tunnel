@@ -7,10 +7,10 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 )
 
-func HandleRoot() http.HandlerFunc{
+func HandleRoot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]any{
-			"message": "welcome to the tunnel nat traversal"
+			"message": "welcome to the tunnel nat traversal",
 		}
 		respondWithJSON(w, r, http.StatusOK, data)
 	}
