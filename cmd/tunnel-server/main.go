@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
+	"os/signal"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/db"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/log"
+
 	"github.com/joho/godotenv"
 )
 
@@ -29,14 +33,23 @@ func main() {
 }
 
 func run(ctx context.Context, getenv func(string) string, args []string, w io.Writer) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
 
-	cfg, err := config.InitalizeConfig(getenv, args)
+	cfg, err := config.InitializeConfig(getenv, args)
 	if err != nil {
 		return err
 	}
 
-	log := log.NewLogger(cfg, w)
-	log.Info("first info", "key", "value", "num", 1)
+	slog.SetDefault(log.NewLogger(cfg, w))
+	slog.Error("error", slog.String("path", "api/v1"))
+
+	_, err = db.OpenDB(ctx, cfg)
+	if err != nil {
+		return err
+	}
+
+	slog.Info("database connected")
 
 	return nil
 }

@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"log/slog"
@@ -9,11 +9,10 @@ import (
 
 type envelope map[string]any
 
-func errorResponse(w http.ResponseWriter, status int, message any) {
-	header := make(http.Header)
+func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
 	env := envelope{"error": message}
 
-	err := encoding.Encode(w, header, status, env)
+	err := encoding.EncodeJson(w, r, status, env)
 	if err != nil {
 		slog.Error("server error", "err", err)
 		w.WriteHeader(500)
@@ -22,8 +21,12 @@ func errorResponse(w http.ResponseWriter, status int, message any) {
 
 func serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 
-	slog.Error("server error", "err", err, "request", r.Method, r.URL)
+	slog.Error("server error",
+		slog.String("err", err.Error()),
+		slog.String("request", r.Method),
+		slog.String("url", r.URL.Path),
+	)
 
 	message := "the server encounter a problem and could not process your request"
-	errorResponse(w, http.StatusInternalServerError, message)
+	errorResponse(w, r, http.StatusInternalServerError, message)
 }

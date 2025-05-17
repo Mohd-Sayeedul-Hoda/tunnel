@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"maps"
 	"net/http"
 	"strings"
+
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/request"
 )
 
-func Encode[T any](w http.ResponseWriter, headers http.Header, status int, data T) error {
-
-	maps.Copy(w.Header(), headers)
+func EncodeJson[T any](w http.ResponseWriter, r *http.Request, status int, data T) error {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -36,7 +35,7 @@ func Decode[T any](w http.ResponseWriter, r *http.Request, data *T) error {
 
 	dec.DisallowUnknownFields()
 
-	err := json.NewDecoder(r.Body).Decode(data)
+	err := dec.Decode(data)
 	if err != nil {
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
@@ -77,4 +76,18 @@ func Decode[T any](w http.ResponseWriter, r *http.Request, data *T) error {
 	}
 
 	return nil
+}
+
+func Validated[T request.Validator](w http.ResponseWriter, r *http.Request) (*T, map[string]string, error) {
+
+	var data T
+	if err := Decode(w, r, &data); err != nil {
+		return nil, nil, err
+	}
+
+	if problems := data.Valid(r.Context()); len(problems) != 0 {
+		return &data, problems, nil
+	}
+
+	return &data, nil, nil
 }

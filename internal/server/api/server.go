@@ -1,10 +1,15 @@
-package main
+package api
 
-import "net/http"
+import (
+	"net/http"
 
-func newServer() http.Handler {
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
+)
 
-	handler := http.NewServeMux()
+func newServer(cfg *config.Config) http.Handler {
 
-	return handler
+	mux := http.NewServeMux()
+	AddRoute(mux, cfg)
+
+	return mux
 }

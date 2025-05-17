@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -16,38 +17,88 @@ type Config struct {
 		DSN          string
 		MaxOpenConn  int
 		MaxIdealConn int
+		MaxIdleTime  string
 	}
-	AppVersion    int
-	AppEnviroment string
-	Debug         bool
+	AppVersion    int    // app version like 1
+	AppEnviroment string //  production|development|debug
+	Debug         bool   // run code in debug mode mostly debug log will be displayed
 }
 
-func InitalizeConfig(getenv func(string) string, args []string) (*Config, error) {
-	config := Config{}
-	flag.IntVar(&config.Server.Port, "port", 8000, "port for http server")
-	flag.StringVar(&config.Server.Host, "host", "localhost", "host for http server")
-	flag.IntVar(&config.DB.MaxOpenConn, "db-max-open-conns", 15, "PostgreSQL max open connection")
-	flag.IntVar(&config.DB.MaxIdealConn, "db-max-idle-conns", 15, "PostgreSQL max idle connections")
-	flag.StringVar(&config.AppEnviroment, "app-env", "Development", "production|development|debug")
-	flag.BoolVar(&config.Debug, "debug", false, "Debug mode")
+func InitializeConfig(getenv func(string) string, args []string) (*Config, error) {
+	cfg := Config{}
+
+	cfg.Server.Port = getEnvInt(getenv, "PORT", 8000)
+	cfg.Server.Host = getEnvString(getenv, "HOST", "localhost")
+
+	cfg.DB.DSN = getEnvString(getenv, "DB_DSN", "")
+	cfg.DB.MaxOpenConn = getEnvInt(getenv, "DB-MAX-OPEN-CONNS", 10)
+	cfg.DB.MaxIdealConn = getEnvInt(getenv, "DB-MAX-IDLE-CONNS", 10)
+	cfg.DB.MaxIdleTime = getEnvString(getenv, "DB-MAX-IDLE-TIME", "10m")
+
+	cfg.AppVersion = getEnvInt(getenv, "APP_VERSION", 1)
+	cfg.AppEnviroment = getEnvString(getenv, "APP_ENVIROMENT", "development")
+
+	flag.BoolVar(&cfg.Debug, "debug", false, "Debug mode")
+
 	err := flag.CommandLine.Parse(args[1:])
 	if err != nil {
 		return nil, err
 	}
 
-	if config.Debug {
-		config.AppEnviroment = "debug"
+	if cfg.Debug {
+		cfg.AppEnviroment = "debug"
 	}
 
-	config.DB.DSN = getenv("DB_DSN")
-	if config.DB.DSN == "" {
-		return nil, fmt.Errorf("no database connection string found")
+	return &cfg, nil
+}
+
+func getEnvString(getenv func(string) string, key string, fallback string) string {
+	value := getenv(key)
+	if value == "" {
+		return fallback
 	}
-	appVersion := getenv("APP_VERSION")
-	config.AppVersion, err = strconv.Atoi(appVersion)
+	return value
+}
+
+func getEnvInt(getenv func(string) string, key string, fallback int) int {
+	value := getenv(key)
+	if value == "" {
+		return fallback
+	}
+
+	intValue, err := strconv.Atoi(value)
 	if err != nil {
-		return nil, errors.New("app version should be integer")
+		return fallback
+	}
+	return intValue
+}
+
+func getEnvBool(getenv func(string) string, key string, fallback bool) bool {
+	value := getenv(key)
+	if value == "" {
+		return fallback
 	}
 
-	return &config, nil
+	lowerValue := strings.ToLower(value)
+	if lowerValue == "true" || lowerValue == "1" || lowerValue == "yes" || lowerValue == "y" {
+		return true
+	}
+	if lowerValue == "false" || lowerValue == "0" || lowerValue == "no" || lowerValue == "n" {
+		return false
+	}
+
+	return fallback
+}
+
+func getEnvSlice(getenv func(string) string, key string, fallback []string) []string {
+	value := getenv(key)
+	if value == "" {
+		return fallback
+	}
+
+	parts := strings.Split(value, ",")
+	for i, part := range parts {
+		parts[i] = strings.TrimSpace(part)
+	}
+	return parts
 }

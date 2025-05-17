@@ -7,24 +7,21 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 )
 
-func NewLogger(cfg *config.Config, out io.Writer) (logger *slog.Logger) {
-
-	minLevel := slog.LevelInfo
+func NewLogger(cfg *config.Config, out io.Writer) *slog.Logger {
+	level := slog.LevelInfo
 	if cfg.AppEnviroment == "debug" {
-		minLevel = slog.LevelDebug
+		level = slog.LevelDebug
 	}
 
-	opts := slog.HandlerOptions{
-		Level: minLevel,
-	}
+	opts := &slog.HandlerOptions{Level: level}
 
 	var handler slog.Handler
-	handler = slog.NewTextHandler(out, &opts)
-
-	if cfg.AppEnviroment == "production" {
-		handler = slog.NewJSONHandler(out, &opts)
+	switch cfg.AppEnviroment {
+	case "production":
+		handler = slog.NewJSONHandler(out, opts)
+	default:
+		handler = slog.NewTextHandler(out, opts)
 	}
 
-	logger = slog.New(handler)
-	return
+	return slog.New(handler)
 }
