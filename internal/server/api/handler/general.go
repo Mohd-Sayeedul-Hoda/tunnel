@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/encoding"
@@ -9,7 +10,16 @@ import (
 
 func HandleRoot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		data := map[string]any{
+		var data map[string]any
+		if r.URL.Path != "/" {
+			data = map[string]any{
+				"message": fmt.Sprintf("%s path not found", r.URL.Path),
+			}
+			respondWithJSON(w, r, http.StatusNotFound, data)
+			return
+		}
+
+		data = map[string]any{
 			"message": "welcome to the tunnel nat traversal",
 		}
 		respondWithJSON(w, r, http.StatusOK, data)

@@ -14,6 +14,6 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config) {
 	mux.HandleFunc("GET /api/v1/healthcheck", handler.HealthCheck(cfg))
 
 	// users
-	mux.HandleFunc("GET /api/v1/user", handler.GetUsers())
+	mux.HandleFunc("GET /api/v1/users", handler.GetUsers())
 
 }

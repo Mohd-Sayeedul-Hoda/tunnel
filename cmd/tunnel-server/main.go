@@ -64,6 +64,8 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 		Handler: handler,
 	}
 
+	serverErrors := make(chan error, 1)
+
 	go func() {
 		slog.Info("http server running",
 			slog.String("host", cfg.Server.Host),
@@ -75,12 +77,18 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 		err := httpServer.ListenAndServe()
 		if err != http.ErrServerClosed {
 			slog.Error("error while starting http server", slog.Any("err", err))
+			serverErrors <- err
 		}
 	}()
 
 	var wg sync.WaitGroup
 
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+		slog.Info("shutdown initiated", slog.String("reason", "context cancelled"))
+	case err := <-serverErrors:
+		return err
+	}
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
