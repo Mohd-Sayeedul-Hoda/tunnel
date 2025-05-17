@@ -11,7 +11,7 @@ import (
 func HandleRoot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data map[string]any
-		if r.URL.Path != "/" {
+		if r.URL.Path != "/" || r.Method != "GET" {
 			data = map[string]any{
 				"message": fmt.Sprintf("%s path not found", r.URL.Path),
 			}
