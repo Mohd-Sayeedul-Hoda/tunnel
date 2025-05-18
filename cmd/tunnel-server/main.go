@@ -16,6 +16,7 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/db"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/postgres"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/log"
 
 	"github.com/joho/godotenv"
@@ -49,15 +50,15 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 
 	slog.SetDefault(log.NewLogger(cfg, w))
 
-	_, err = db.OpenDB(ctx, cfg)
+	pgPool, err := db.OpenPostgresConn(ctx, cfg)
 	if err != nil {
 		return err
 	}
-
 	slog.Info("database connection pool establish")
 
-	handler := api.NewHTTPServer(cfg)
-	slog.Debug("handler created")
+	userRepo := postgres.NewUserRepo(pgPool)
+
+	handler := api.NewHTTPServer(cfg, userRepo)
 
 	httpServer := http.Server{
 		Addr:    net.JoinHostPort(cfg.Server.Host, strconv.Itoa(cfg.Server.Port)),

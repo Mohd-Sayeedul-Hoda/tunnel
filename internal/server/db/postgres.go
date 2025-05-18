@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func OpenDB(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
+func OpenPostgresConn(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
 	poolConfig, err := pgxpool.ParseConfig(cfg.DB.DSN)
 	if err != nil {
 		return nil, err

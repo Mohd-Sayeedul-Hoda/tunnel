@@ -10,9 +10,13 @@ CREATE TABLE IF NOT EXISTS sessions(
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS sessions;
+
+DROP INDEX IF EXISTS idx_sessions_user_id;
 -- +goose StatementEnd
