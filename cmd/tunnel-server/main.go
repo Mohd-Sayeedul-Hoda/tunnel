@@ -56,7 +56,10 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	}
 	slog.Info("database connection pool establish")
 
-	userRepo := postgres.NewUserRepo(pgPool)
+	userRepo, err := postgres.NewUserRepo(pgPool)
+	if err != nil {
+		return err
+	}
 
 	handler := api.NewHTTPServer(cfg, userRepo)
 
