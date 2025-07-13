@@ -78,16 +78,16 @@ func Decode[T any](w http.ResponseWriter, r *http.Request, data *T) error {
 	return nil
 }
 
-func Validated[T request.Validator](w http.ResponseWriter, r *http.Request) (*T, map[string]string, error) {
+func Validated[T request.Validator](w http.ResponseWriter, r *http.Request) (T, map[string]string, error) {
 
 	var data T
 	if err := Decode(w, r, &data); err != nil {
-		return nil, nil, err
+		return data, nil, err
 	}
 
 	if problems := data.Valid(r.Context()); len(problems) != 0 {
-		return &data, problems, nil
+		return data, problems, nil
 	}
 
-	return &data, nil, nil
+	return data, nil, nil
 }

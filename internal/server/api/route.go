@@ -15,6 +15,6 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, userRepo repositories.User
 	mux.HandleFunc("GET /api/v1/healthcheck", handler.HealthCheck(cfg))
 
 	// users
-	mux.HandleFunc("GET /api/v1/users", handler.GetUsers(userRepo))
+	mux.HandleFunc("GET /api/v1/users/{user_id}", handler.GetUsers(userRepo))
 
 }

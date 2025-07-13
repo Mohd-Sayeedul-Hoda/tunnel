@@ -8,18 +8,21 @@ import (
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/sqlc"
+
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
-	ErrDuplicateEmail = errors.New("duplicate email address")
-	ErrInsertingRow   = errors.New("error while inserting row in db")
+	ErrUniqueViolation = errors.New("unique key violation in db")
+	ErrNotFound        = errors.New("record not found")
 )
 
 type userRepo struct {
-	pool *pgxpool.Pool
+	queries sqlc.Querier
 }
 
 func NewUserRepo(pool *pgxpool.Pool) (repositories.UserRepo, error) {
@@ -28,30 +31,92 @@ func NewUserRepo(pool *pgxpool.Pool) (repositories.UserRepo, error) {
 	}
 
 	return &userRepo{
-		pool: pool,
+		queries: sqlc.New(pool),
 	}, nil
 }
 
-func (u *userRepo) Insert(user *models.User) error {
-	query := `INSERT INTO users (email, name, password_hash) VALUES ($1, $2, $3) RETURNING id, created_at`
-
+func (u *userRepo) Create(user *models.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	err := u.pool.QueryRow(ctx, query,
-		user.Email,
-		user.Name,
-		user.PasswordHash,
-	).Scan(user.Id, user.CreatedAt)
+	createdRow, err := u.queries.CreateUser(ctx, sqlc.CreateUserParams{
+		Email:        user.Email,
+		Name:         user.Name,
+		PasswordHash: user.PasswordHash,
+	})
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == pgerrcode.UniqueViolation {
-				return fmt.Errorf("%w %w", ErrDuplicateEmail, err)
+				return fmt.Errorf("%w: %w", ErrUniqueViolation, err)
 			}
-			return fmt.Errorf("%w %w", ErrInsertingRow, err)
 		}
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	user.Id = int(createdRow.ID)
+	user.CreatedAt = createdRow.CreatedAt.Time
+
+	return nil
+}
+
+func (u *userRepo) Delete(userId int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	err := u.queries.DeleteUser(ctx, int32(userId))
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
 	}
 
 	return nil
+}
+
+func (u *userRepo) GetByEmail(email string) (*models.User, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	dbUser, err := u.queries.GetUserByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to get user by email: %w", err)
+	}
+
+	return &models.User{
+		Id:            int(dbUser.ID),
+		Name:          dbUser.Name,
+		Email:         dbUser.Email,
+		PasswordHash:  dbUser.PasswordHash,
+		EmailVerified: dbUser.EmailVerified,
+		CreatedAt:     dbUser.CreatedAt.Time,
+		UpdatedAt:     dbUser.UpdatedAt.Time,
+	}, nil
+
+}
+
+func (u *userRepo) GetById(userId int) (*models.User, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	dbUser, err := u.queries.GetUserById(ctx, int32(userId))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
+	}
+
+	return &models.User{
+		Id:            int(dbUser.ID),
+		Name:          dbUser.Name,
+		Email:         dbUser.Email,
+		PasswordHash:  dbUser.PasswordHash,
+		EmailVerified: dbUser.EmailVerified,
+		CreatedAt:     dbUser.CreatedAt.Time,
+		UpdatedAt:     dbUser.UpdatedAt.Time,
+	}, nil
 }

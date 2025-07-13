@@ -30,3 +30,16 @@ func serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	message := "the server encounter a problem and could not process your request"
 	errorResponse(w, r, http.StatusInternalServerError, message)
 }
+
+func badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	errorResponse(w, r, http.StatusBadRequest, err.Error())
+}
+
+func notFoundResponse(w http.ResponseWriter, r *http.Request) {
+	message := "the requested resource could not be found"
+	errorResponse(w, r, http.StatusNotFound, message)
+}
+
+func failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
+	errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+}

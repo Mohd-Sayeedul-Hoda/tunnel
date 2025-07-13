@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api"
@@ -85,8 +84,6 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 		}
 	}()
 
-	var wg sync.WaitGroup
-
 	select {
 	case <-ctx.Done():
 		slog.Info("shutdown initiated", slog.String("reason", "context cancelled"))
@@ -100,10 +97,6 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	if err != nil {
 		return err
 	}
-
-	slog.Info("closing http server", slog.String("addrs", httpServer.Addr))
-
-	wg.Wait()
 
 	slog.Info("http server stop", slog.String("addrs", httpServer.Addr))
 

@@ -3,9 +3,9 @@ package request
 import "context"
 
 type User struct {
-	Email    string
-	Name     string
-	Password string
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }
 
 func (u *User) Valid(ctx context.Context) map[string]string {
