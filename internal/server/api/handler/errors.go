@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/encoding"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/request"
 )
 
 type envelope map[string]any
@@ -40,6 +41,6 @@ func notFoundResponse(w http.ResponseWriter, r *http.Request) {
 	errorResponse(w, r, http.StatusNotFound, message)
 }
 
-func failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
-	errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+func failedValidationResponse(w http.ResponseWriter, r *http.Request, errors *request.Valid) {
+	errorResponse(w, r, http.StatusUnprocessableEntity, errors.Errors)
 }

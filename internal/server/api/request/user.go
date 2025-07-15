@@ -8,12 +8,12 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func (u *User) Valid(ctx context.Context) map[string]string {
-	problem := make(map[string]string)
+func (u *User) Valid(ctx context.Context) *Valid {
+	v := NewValidator()
 
-	validEmail(u.Email, problem)
-	validPassword(u.Password, problem)
-	validName(u.Name, problem)
+	validEmail(v, u.Email)
+	validPassword(v, u.Password)
+	validName(v, u.Name)
 
-	return problem
+	return v
 }

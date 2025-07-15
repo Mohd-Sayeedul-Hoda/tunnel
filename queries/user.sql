@@ -3,7 +3,7 @@ INSERT INTO users (email, name, password_hash)
 VALUES ($1, $2, $3)
 RETURNING id, created_at;
 
--- name: DeleteUser :exec
+-- name: DeleteUser :execrows
 DELETE FROM users WHERE id = $1; 
 
 -- name: GetUserByEmail :one

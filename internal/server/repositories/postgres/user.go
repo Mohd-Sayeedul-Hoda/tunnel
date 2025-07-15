@@ -64,9 +64,13 @@ func (u *userRepo) Delete(userId int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	err := u.queries.DeleteUser(ctx, int32(userId))
+	rows, err := u.queries.DeleteUser(ctx, int32(userId))
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	if rows == 0 {
+		return ErrNotFound
 	}
 
 	return nil

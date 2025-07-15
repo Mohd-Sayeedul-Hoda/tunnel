@@ -11,6 +11,8 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/request"
 )
 
+var ErrInvalidData = errors.New("invalid data")
+
 func EncodeJson[T any](w http.ResponseWriter, r *http.Request, status int, data T) error {
 
 	w.Header().Set("Content-Type", "application/json")
@@ -78,16 +80,15 @@ func Decode[T any](w http.ResponseWriter, r *http.Request, data *T) error {
 	return nil
 }
 
-func Validated[T request.Validator](w http.ResponseWriter, r *http.Request) (T, map[string]string, error) {
-
-	var data T
+func Validated[T request.Validator](w http.ResponseWriter, r *http.Request, data T) (*request.Valid, error) {
 	if err := Decode(w, r, &data); err != nil {
-		return data, nil, err
+		return nil, err
 	}
 
-	if problems := data.Valid(r.Context()); len(problems) != 0 {
-		return data, problems, nil
+	problem := data.Valid(r.Context())
+	if !problem.Valid() {
+		return problem, fmt.Errorf("%w: invalid %T: %d problems", ErrInvalidData, data, len(problem.Errors))
 	}
 
-	return data, nil, nil
+	return problem, nil
 }
