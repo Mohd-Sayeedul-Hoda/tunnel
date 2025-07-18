@@ -41,6 +41,11 @@ func notFoundResponse(w http.ResponseWriter, r *http.Request) {
 	errorResponse(w, r, http.StatusNotFound, message)
 }
 
+func invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
+	message := "invalid authenication credentials"
+	errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
 func failedValidationResponse(w http.ResponseWriter, r *http.Request, errors *request.Valid) {
 	errorResponse(w, r, http.StatusUnprocessableEntity, errors.Errors)
 }

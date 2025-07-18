@@ -107,3 +107,36 @@ func DeleteUser(userRepo repositories.UserRepo) http.HandlerFunc {
 		respondWithJSON(w, r, http.StatusOK, envelope{"status": "user deleted"})
 	}
 }
+
+func Login(userRepo repositories.UserRepo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		var req request.Login
+		problems, err := encoding.Validated(w, r, &req)
+		if err != nil {
+			switch {
+			case errors.Is(err, encoding.ErrInvalidData):
+				failedValidationResponse(w, r, problems)
+			default:
+				badRequestResponse(w, r, err)
+			}
+			return
+		}
+
+		user, err := userRepo.GetByEmail(req.Email)
+		if err != nil {
+			switch {
+			case errors.Is(err, postgres.ErrNotFound):
+				invalidCredentialsResponse(w, r)
+			default:
+				serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		if !user.EmailVerified {
+
+		}
+
+	}
+}

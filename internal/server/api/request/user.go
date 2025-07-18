@@ -11,9 +11,23 @@ type User struct {
 func (u *User) Valid(ctx context.Context) *Valid {
 	v := NewValidator()
 
-	validEmail(v, u.Email)
-	validPassword(v, u.Password)
-	validName(v, u.Name)
+	ValidEmail(v, u.Email)
+	ValidPassword(v, u.Password)
+	ValidName(v, u.Name)
+
+	return v
+}
+
+type Login struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (u *Login) Valid(ctx context.Context) *Valid {
+	v := NewValidator()
+
+	ValidEmail(v, u.Email)
+	ValidPassword(v, u.Password)
 
 	return v
 }
