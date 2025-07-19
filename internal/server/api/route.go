@@ -18,6 +18,6 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, userRepo repositories.User
 	mux.HandleFunc("GET /api/v1/users/{id}", handler.GetUsers(userRepo))
 	mux.HandleFunc("DELETE /api/v1/users/{id}", handler.DeleteUser(userRepo))
 	mux.HandleFunc("POST /api/v1/users", handler.CreateUser(userRepo))
-	mux.HandleFunc("POST /api/v1/users/authentication", handler.Login(userRepo))
+	mux.HandleFunc("POST /api/v1/users/authentication", handler.Authenticate(userRepo))
 
 }

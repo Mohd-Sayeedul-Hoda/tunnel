@@ -110,7 +110,7 @@ func DeleteUser(userRepo repositories.UserRepo) http.HandlerFunc {
 	}
 }
 
-func Authentication(userRepo repositories.UserRepo) http.HandlerFunc {
+func Authenticate(userRepo repositories.UserRepo) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -132,15 +132,21 @@ func Authentication(userRepo repositories.UserRepo) http.HandlerFunc {
 		if err != nil {
 			switch {
 			case errors.Is(err, postgres.ErrNotFound):
-				//invalidCredentialsResponse(w, r)
+				invalidCredentialsResponse(w, r)
 			default:
 				ServerErrorResponse(w, r, err)
 			}
 			return
 		}
 
-		if !user.EmailVerified {
-
+		matched, err := password.MatchPassword(user.Password, req.Password)
+		if err != nil {
+			ServerErrorResponse(w, r, err)
+			return
+		}
+		if !matched {
+			invalidCredentialsResponse(w, r)
+			return
 		}
 
 	}
