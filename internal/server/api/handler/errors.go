@@ -11,16 +11,16 @@ import (
 type envelope map[string]any
 
 func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
-	env := envelope{"error": message}
+	resp := envelope{"error": message}
 
-	err := encoding.EncodeJson(w, r, status, env)
+	err := encoding.EncodeJson(w, r, status, resp)
 	if err != nil {
 		slog.Error("server error", "err", err)
 		w.WriteHeader(500)
 	}
 }
 
-func serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+func ServerErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 
 	slog.Error("server error",
 		slog.String("err", err.Error()),
@@ -39,11 +39,6 @@ func badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 func notFoundResponse(w http.ResponseWriter, r *http.Request) {
 	message := "the requested resource could not be found"
 	errorResponse(w, r, http.StatusNotFound, message)
-}
-
-func invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
-	message := "invalid authenication credentials"
-	errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
 func failedValidationResponse(w http.ResponseWriter, r *http.Request, errors *request.Valid) {

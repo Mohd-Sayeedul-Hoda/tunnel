@@ -27,14 +27,14 @@ func GetUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 			case errors.Is(err, postgres.ErrNotFound):
 				notFoundResponse(w, r)
 			default:
-				serverErrorResponse(w, r, err)
+				ServerErrorResponse(w, r, err)
 			}
 			return
 		}
 
 		err = encoding.EncodeJson(w, r, http.StatusOK, envelope{"data": user})
 		if err != nil {
-			serverErrorResponse(w, r, err)
+			ServerErrorResponse(w, r, err)
 		}
 	}
 }
@@ -62,7 +62,7 @@ func CreateUser(userRepo repositories.UserRepo) http.HandlerFunc {
 
 		hash, err := password.SetPassword(user.Password)
 		if err != nil {
-			serverErrorResponse(w, r, err)
+			ServerErrorResponse(w, r, err)
 			return
 		}
 		newUser.PasswordHash = hash
@@ -74,14 +74,14 @@ func CreateUser(userRepo repositories.UserRepo) http.HandlerFunc {
 				problem.AddError("email", "a user with this email address already exists")
 				failedValidationResponse(w, r, problem)
 			default:
-				serverErrorResponse(w, r, err)
+				ServerErrorResponse(w, r, err)
 			}
 			return
 		}
 
 		err = encoding.EncodeJson(w, r, http.StatusCreated, envelope{"data": newUser})
 		if err != nil {
-			serverErrorResponse(w, r, err)
+			ServerErrorResponse(w, r, err)
 		}
 	}
 }
@@ -100,7 +100,7 @@ func DeleteUser(userRepo repositories.UserRepo) http.HandlerFunc {
 			case errors.Is(err, postgres.ErrNotFound):
 				notFoundResponse(w, r)
 			default:
-				serverErrorResponse(w, r, err)
+				ServerErrorResponse(w, r, err)
 			}
 			return
 		}
@@ -127,9 +127,9 @@ func Login(userRepo repositories.UserRepo) http.HandlerFunc {
 		if err != nil {
 			switch {
 			case errors.Is(err, postgres.ErrNotFound):
-				invalidCredentialsResponse(w, r)
+				//invalidCredentialsResponse(w, r)
 			default:
-				serverErrorResponse(w, r, err)
+				ServerErrorResponse(w, r, err)
 			}
 			return
 		}

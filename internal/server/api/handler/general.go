@@ -42,6 +42,6 @@ func respondWithJSON[T any](w http.ResponseWriter, r *http.Request, status int, 
 
 	err := encoding.EncodeJson(w, r, status, data)
 	if err != nil {
-		serverErrorResponse(w, r, err)
+		ServerErrorResponse(w, r, err)
 	}
 }
