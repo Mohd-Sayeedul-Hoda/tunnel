@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache/redis"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/db"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/postgres"
@@ -59,6 +60,9 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	if err != nil {
 		return err
 	}
+
+	_, err = redis.NewRedisCacheRepo(cfg)
+	slog.Info("redis connection establish")
 
 	handler := api.NewHTTPServer(cfg, userRepo)
 

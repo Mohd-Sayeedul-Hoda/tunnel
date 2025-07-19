@@ -17,6 +17,9 @@ type Config struct {
 		MaxIdealConn int
 		MaxIdleTime  string
 	}
+	Cache struct {
+		DSN string
+	}
 	AppVersion    int    // app version like 1
 	AppEnviroment string //  production|development|debug
 	Debug         bool   // run code in debug mode mostly debug log will be displayed
@@ -32,6 +35,8 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 	cfg.DB.MaxOpenConn = getEnvInt(getenv, "DB-MAX-OPEN-CONNS", 10)
 	cfg.DB.MaxIdealConn = getEnvInt(getenv, "DB-MAX-IDLE-CONNS", 10)
 	cfg.DB.MaxIdleTime = getEnvString(getenv, "DB-MAX-IDLE-TIME", "10m")
+
+	cfg.Cache.DSN = getEnvString(getenv, "REDIS_DSN", "")
 
 	cfg.AppVersion = getEnvInt(getenv, "APP_VERSION", 1)
 	cfg.AppEnviroment = getEnvString(getenv, "APP_ENVIROMENT", "development")
