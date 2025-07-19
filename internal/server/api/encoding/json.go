@@ -12,6 +12,7 @@ import (
 )
 
 var ErrInvalidData = errors.New("invalid data")
+var ErrInvalidRequest = errors.New("invalid request")
 
 func EncodeJson[T any](w http.ResponseWriter, r *http.Request, status int, data T) error {
 
@@ -46,28 +47,28 @@ func Decode[T any](w http.ResponseWriter, r *http.Request, data *T) error {
 
 		switch {
 		case errors.As(err, &syntaxError):
-			return fmt.Errorf("body contain badly-formated JSON (at character %d)", syntaxError.Offset)
+			return fmt.Errorf("%w: body contain badly-formated JSON (at character %d)", ErrInvalidRequest, syntaxError.Offset)
 
 		case errors.Is(err, io.ErrUnexpectedEOF):
-			return errors.New("body contains badly-formated JSON")
+			return fmt.Errorf("%w: body contains badly-formated JSON", ErrInvalidRequest)
 
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
-				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
+				return fmt.Errorf("%w: body contains incorrect JSON type for field %q", ErrInvalidRequest, unmarshalTypeError.Field)
 			}
-			return fmt.Errorf("body contians incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
+			return fmt.Errorf("%w: body contians incorrect JSON type (at character %d)", ErrInvalidRequest, unmarshalTypeError.Offset)
 
 		// happen when body is empty
 		case errors.Is(err, io.EOF):
-			return errors.New("body must not be empty")
+			return fmt.Errorf("%w: body must not be empty", ErrInvalidRequest)
 
 		case strings.HasPrefix(err.Error(), "json: unknown field"):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field")
-			return fmt.Errorf("body contains unknown key %s", fieldName)
+			return fmt.Errorf("%w: body contains unknown key %s", ErrInvalidRequest, fieldName)
 
 		// happen when body size bigger then specified size
 		case errors.As(err, &maxBytesError):
-			return fmt.Errorf("body must not be larger than %d bytes", maxBytesError.Limit)
+			return fmt.Errorf("%w: body must not be larger than %d bytes", ErrInvalidRequest, maxBytesError.Limit)
 
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)

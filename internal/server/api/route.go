@@ -17,9 +17,7 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, userRepo repositories.User
 	// users
 	mux.HandleFunc("GET /api/v1/users/{id}", handler.GetUsers(userRepo))
 	mux.HandleFunc("DELETE /api/v1/users/{id}", handler.DeleteUser(userRepo))
-
-	//login
 	mux.HandleFunc("POST /api/v1/users", handler.CreateUser(userRepo))
-	mux.HandleFunc("POST /api/v1/login", handler.CreateUser(userRepo))
+	mux.HandleFunc("POST /api/v1/users/authentication", handler.Login(userRepo))
 
 }
