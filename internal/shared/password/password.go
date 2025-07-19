@@ -6,13 +6,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SetPassword(password string) (string, error) {
+func SetPassword(password string) ([]byte, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(hash), nil
+	return hash, nil
 }
 
 func MatchPassword(hash, password string) (bool, error) {

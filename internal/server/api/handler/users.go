@@ -47,6 +47,8 @@ func CreateUser(userRepo repositories.UserRepo) http.HandlerFunc {
 		problem, err := encoding.Validated(w, r, &user)
 		if err != nil {
 			switch {
+			case errors.Is(err, encoding.ErrInvalidRequest):
+				badRequestResponse(w, r, err)
 			case errors.Is(err, encoding.ErrInvalidData):
 				failedValidationResponse(w, r, problem)
 			default:
@@ -108,13 +110,16 @@ func DeleteUser(userRepo repositories.UserRepo) http.HandlerFunc {
 	}
 }
 
-func Login(userRepo repositories.UserRepo) http.HandlerFunc {
+func Authentication(userRepo repositories.UserRepo) http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var req request.Login
 		problems, err := encoding.Validated(w, r, &req)
 		if err != nil {
 			switch {
+			case errors.Is(err, encoding.ErrInvalidRequest):
+				badRequestResponse(w, r, err)
 			case errors.Is(err, encoding.ErrInvalidData):
 				failedValidationResponse(w, r, problems)
 			default:

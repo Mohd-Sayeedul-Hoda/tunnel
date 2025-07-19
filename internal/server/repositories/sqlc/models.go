@@ -15,15 +15,13 @@ type Session struct {
 	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
 	IpAddress string             `json:"ip_address"`
 	UserAgent string             `json:"user_agent"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {
 	ID            int32              `json:"id"`
 	Email         string             `json:"email"`
 	Name          string             `json:"name"`
-	PasswordHash  string             `json:"password_hash"`
+	PasswordHash  []byte             `json:"password_hash"`
 	EmailVerified bool               `json:"email_verified"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`

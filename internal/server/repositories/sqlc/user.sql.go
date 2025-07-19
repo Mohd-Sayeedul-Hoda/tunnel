@@ -20,7 +20,7 @@ RETURNING id, created_at
 type CreateUserParams struct {
 	Email        string `json:"email"`
 	Name         string `json:"name"`
-	PasswordHash string `json:"password_hash"`
+	PasswordHash []byte `json:"password_hash"`
 }
 
 type CreateUserRow struct {
@@ -127,7 +127,7 @@ type UpdateUserFullParams struct {
 	ID            int32  `json:"id"`
 	Email         string `json:"email"`
 	Name          string `json:"name"`
-	PasswordHash  string `json:"password_hash"`
+	PasswordHash  []byte `json:"password_hash"`
 	EmailVerified bool   `json:"email_verified"`
 }
 
@@ -188,7 +188,7 @@ RETURNING id, email, name, password_hash, email_verified, created_at, updated_at
 
 type UpdateUserPasswordParams struct {
 	ID           int32  `json:"id"`
-	PasswordHash string `json:"password_hash"`
+	PasswordHash []byte `json:"password_hash"`
 }
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {

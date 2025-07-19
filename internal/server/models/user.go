@@ -7,7 +7,7 @@ type User struct {
 	Name          string    `json:"name"`
 	Email         string    `json:"email"`
 	Password      string    `json:"-"`
-	PasswordHash  string    `json:"-"`
+	PasswordHash  []byte    `json:"-"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	EmailVerified bool      `json:"-"`
