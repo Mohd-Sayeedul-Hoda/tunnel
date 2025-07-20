@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"flag"
 	"strconv"
 	"strings"
@@ -20,9 +21,41 @@ type Config struct {
 	Cache struct {
 		DSN string
 	}
+	Token struct {
+		AccessTokenPublicKey   string
+		AccessTokenPrivateKey  string
+		AccessTokenExpiredIn   string
+		AccessTokenMaxAge      uint
+		RefreshTokenPublicKey  string
+		RefreshTokenPrivateKey string
+		RefreshTokenExpiredIn  string
+		RefreshTokenMaxAge     uint
+	}
 	AppVersion    int    // app version like 1
 	AppEnviroment string //  production|development|debug
 	Debug         bool   // run code in debug mode mostly debug log will be displayed
+}
+
+func (c *Config) validate() error {
+	if c.DB.DSN == "" {
+		return errors.New("DB_DSN is not set")
+	}
+	if c.Cache.DSN == "" {
+		return errors.New("REDIS_DSN is not set")
+	}
+	if c.Token.AccessTokenPublicKey == "" {
+		return errors.New("ACCESS_TOKEN_PUBLIC_KEY is not set")
+	}
+	if c.Token.AccessTokenPrivateKey == "" {
+		return errors.New("ACCESS_TOKEN_PRIVATE_KEY is not set")
+	}
+	if c.Token.RefreshTokenPublicKey == "" {
+		return errors.New("REFRESH_TOKEN_PUBLIC_KEY is not set")
+	}
+	if c.Token.RefreshTokenPrivateKey == "" {
+		return errors.New("REFRESH_TOKEN_PRIVATE_KEY is not set")
+	}
+	return nil
 }
 
 func InitializeConfig(getenv func(string) string, args []string) (*Config, error) {
@@ -41,6 +74,16 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 	cfg.AppVersion = getEnvInt(getenv, "APP_VERSION", 1)
 	cfg.AppEnviroment = getEnvString(getenv, "APP_ENVIROMENT", "development")
 
+	cfg.Token.AccessTokenPublicKey = getEnvString(getenv, "ACCESS_TOKEN_PUBLIC_KEY", "")
+	cfg.Token.AccessTokenPrivateKey = getEnvString(getenv, "ACCESS_TOKEN_PRIVATE_KEY", "")
+	cfg.Token.AccessTokenExpiredIn = getEnvString(getenv, "ACCESS_TOKEN_EXPIRED_IN", "")
+	cfg.Token.AccessTokenMaxAge = uint(getEnvInt(getenv, "ACCESS_TOKEN_MAXAGE", 15))
+
+	cfg.Token.RefreshTokenPublicKey = getEnvString(getenv, "REFRESH_TOKEN_PUBLIC_KEY", "")
+	cfg.Token.RefreshTokenPrivateKey = getEnvString(getenv, "REFRESH_TOKEN_PRIVATE_KEY", "")
+	cfg.Token.RefreshTokenExpiredIn = getEnvString(getenv, "REFRESH_TOKEN_EXPIRED_IN", "")
+	cfg.Token.RefreshTokenMaxAge = uint(getEnvInt(getenv, "REFRESH_TOKEN_MAXAGE", 60))
+
 	flag.BoolVar(&cfg.Debug, "debug", false, "Debug mode")
 
 	err := flag.CommandLine.Parse(args[1:])
@@ -50,6 +93,10 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 
 	if cfg.Debug {
 		cfg.AppEnviroment = "debug"
+	}
+
+	if err := cfg.validate(); err != nil {
+		return nil, err
 	}
 
 	return &cfg, nil
