@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache"
@@ -28,7 +29,7 @@ func NewRedisCacheRepo(cfg *config.Config) (cache.CacheRepo, error) {
 	client := redis.NewClient(opts)
 	err = client.Ping(context.Background()).Err()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("redis connection failed: %w", err)
 	}
 
 	return &redisRepo{

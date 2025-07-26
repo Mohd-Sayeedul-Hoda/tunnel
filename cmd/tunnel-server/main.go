@@ -62,6 +62,9 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	}
 
 	_, err = redis.NewRedisCacheRepo(cfg)
+	if err != nil {
+		return err
+	}
 	slog.Info("redis connection establish")
 
 	handler := api.NewHTTPServer(cfg, userRepo)
