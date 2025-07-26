@@ -3,14 +3,24 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/encoding"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/request"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/postgres"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/utils"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/password"
 )
+
+func GetAllUsers(userRepo repositories.UserRepo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+	}
+}
 
 func GetUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +120,7 @@ func DeleteUser(userRepo repositories.UserRepo) http.HandlerFunc {
 	}
 }
 
-func Authenticate(userRepo repositories.UserRepo) http.HandlerFunc {
+func AuthenticateUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo repositories.UserRepo) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -149,5 +159,51 @@ func Authenticate(userRepo repositories.UserRepo) http.HandlerFunc {
 			return
 		}
 
+		accessToken, err := utils.CreateToken(user.Id, cfg.Token.AccessTokenExpiredIn, cfg.Token.AccessTokenPrivateKey)
+		if err != nil {
+			ServerErrorResponse(w, r, err)
+			return
+		}
+
+		refreshToken, err := utils.CreateToken(user.Id, cfg.Token.RefreshTokenExpiredIn, cfg.Token.RefreshTokenPrivateKey)
+		if err != nil {
+			ServerErrorResponse(w, r, err)
+			return
+		}
+
+		now := time.Now()
+		err = cacheRepo.Set(refreshToken.TokenUuid, user.Id, time.Unix(accessToken.ExpiresIn, 0).Sub(now))
+		if err != nil {
+			ServerErrorResponse(w, r, err)
+			return
+		}
+
+		accessCookie := http.Cookie{
+			Name:     "access_token",
+			Value:    accessToken.Token,
+			Path:     "/",
+			Expires:  time.Unix(accessToken.ExpiresIn, 0),
+			HttpOnly: true,
+			Secure:   r.TLS != nil,
+			SameSite: http.SameSiteLaxMode,
+		}
+		http.SetCookie(w, &accessCookie)
+
+		refreshCookie := http.Cookie{
+			Name:     "refresh_token",
+			Value:    refreshToken.Token,
+			Path:     "/",
+			Expires:  time.Unix(refreshToken.ExpiresIn, 0),
+			HttpOnly: true,
+			Secure:   r.TLS != nil,
+			SameSite: http.SameSiteLaxMode,
+		}
+		http.SetCookie(w, &refreshCookie)
+
+		respondWithJSON(w, r, http.StatusOK, envelope{
+			"status": "authentication successfull",
+			"data": envelope{
+				"access_token": accessToken.Token,
+			}})
 	}
 }

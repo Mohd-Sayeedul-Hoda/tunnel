@@ -3,8 +3,10 @@ package config
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -24,11 +26,11 @@ type Config struct {
 	Token struct {
 		AccessTokenPublicKey   string
 		AccessTokenPrivateKey  string
-		AccessTokenExpiredIn   string
+		AccessTokenExpiredIn   time.Duration
 		AccessTokenMaxAge      uint
 		RefreshTokenPublicKey  string
 		RefreshTokenPrivateKey string
-		RefreshTokenExpiredIn  string
+		RefreshTokenExpiredIn  time.Duration
 		RefreshTokenMaxAge     uint
 	}
 	AppVersion    int    // app version like 1
@@ -76,17 +78,31 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 
 	cfg.Token.AccessTokenPublicKey = getEnvString(getenv, "ACCESS_TOKEN_PUBLIC_KEY", "")
 	cfg.Token.AccessTokenPrivateKey = getEnvString(getenv, "ACCESS_TOKEN_PRIVATE_KEY", "")
-	cfg.Token.AccessTokenExpiredIn = getEnvString(getenv, "ACCESS_TOKEN_EXPIRED_IN", "")
 	cfg.Token.AccessTokenMaxAge = uint(getEnvInt(getenv, "ACCESS_TOKEN_MAXAGE", 15))
 
 	cfg.Token.RefreshTokenPublicKey = getEnvString(getenv, "REFRESH_TOKEN_PUBLIC_KEY", "")
 	cfg.Token.RefreshTokenPrivateKey = getEnvString(getenv, "REFRESH_TOKEN_PRIVATE_KEY", "")
-	cfg.Token.RefreshTokenExpiredIn = getEnvString(getenv, "REFRESH_TOKEN_EXPIRED_IN", "")
 	cfg.Token.RefreshTokenMaxAge = uint(getEnvInt(getenv, "REFRESH_TOKEN_MAXAGE", 60))
+
+	accessExpireIn := getEnvString(getenv, "ACCESS_TOKEN_EXPIRED_IN", "15m")
+	refreshExpireIn := getEnvString(getenv, "REFRESH_TOKEN_EXPIRED_IN", "60m")
+
+	accessTokenExpireIn, err := time.ParseDuration(accessExpireIn)
+	if err != nil {
+		return nil, fmt.Errorf("invalid access token duration: %w", err)
+	}
+
+	refreshTokenExpireIn, err := time.ParseDuration(refreshExpireIn)
+	if err != nil {
+		return nil, fmt.Errorf("invalid refresh token duration: %w", err)
+	}
+
+	cfg.Token.AccessTokenExpiredIn = accessTokenExpireIn
+	cfg.Token.RefreshTokenExpiredIn = refreshTokenExpireIn
 
 	flag.BoolVar(&cfg.Debug, "debug", false, "Debug mode")
 
-	err := flag.CommandLine.Parse(args[1:])
+	err = flag.CommandLine.Parse(args[1:])
 	if err != nil {
 		return nil, err
 	}
@@ -152,3 +168,4 @@ func getEnvSlice(getenv func(string) string, key string, fallback []string) []st
 	}
 	return parts
 }
+

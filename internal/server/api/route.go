@@ -4,11 +4,12 @@ import (
 	"net/http"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/handler"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 )
 
-func AddRoute(mux *http.ServeMux, cfg *config.Config, userRepo repositories.UserRepo) {
+func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo, userRepo repositories.UserRepo) {
 
 	// general
 	mux.HandleFunc("/", handler.HandleRoot())
@@ -18,6 +19,6 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, userRepo repositories.User
 	mux.HandleFunc("GET /api/v1/users/{id}", handler.GetUsers(userRepo))
 	mux.HandleFunc("DELETE /api/v1/users/{id}", handler.DeleteUser(userRepo))
 	mux.HandleFunc("POST /api/v1/users", handler.CreateUser(userRepo))
-	mux.HandleFunc("POST /api/v1/users/authentication", handler.Authenticate(userRepo))
+	mux.HandleFunc("POST /api/v1/users/authentication", handler.AuthenticateUser(cfg, cacheRepo, userRepo))
 
 }

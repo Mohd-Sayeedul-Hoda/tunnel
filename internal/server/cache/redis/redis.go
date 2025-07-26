@@ -52,7 +52,7 @@ func (r *redisRepo) Get(key string) (string, error) {
 
 }
 
-func (r *redisRepo) Set(key, value string, exp time.Duration) error {
+func (r *redisRepo) Set(key string, value any, exp time.Duration) error {
 	return r.client.Set(context.Background(), key, value, exp).Err()
 }
 

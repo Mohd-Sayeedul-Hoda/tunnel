@@ -61,13 +61,13 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 		return err
 	}
 
-	_, err = redis.NewRedisCacheRepo(cfg)
+	cacheRepo, err := redis.NewRedisCacheRepo(cfg)
 	if err != nil {
 		return err
 	}
 	slog.Info("redis connection establish")
 
-	handler := api.NewHTTPServer(cfg, userRepo)
+	handler := api.NewHTTPServer(cfg, cacheRepo, userRepo)
 
 	httpServer := http.Server{
 		Addr:    net.JoinHostPort(cfg.Server.Host, strconv.Itoa(cfg.Server.Port)),
