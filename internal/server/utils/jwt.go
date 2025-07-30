@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,6 +16,11 @@ type TokenDetails struct {
 	UserID    int
 	ExpiresIn int64
 }
+
+var (
+	ErrInvalidClaims = errors.New("invalid token claims")
+	ErrTokenExpired  = errors.New("token is expired")
+)
 
 func CreateToken(userId int, ttl time.Duration, privateKey string) (*TokenDetails, error) {
 	now := time.Now().UTC()
@@ -72,17 +78,26 @@ func ValidetToken(token string, publicKey string) (*TokenDetails, error) {
 		return key, nil
 	})
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrTokenExpired
+		}
 		return nil, err
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok || !parsedToken.Valid {
-		return nil, fmt.Errorf("validate: invalid token")
+		return nil, ErrInvalidClaims
+	}
+
+	userIDFloat, ok := claims["sub"].(float64)
+	if !ok {
+		return nil, ErrInvalidClaims
 	}
 
 	return &TokenDetails{
 		TokenUuid: fmt.Sprint(claims["token_uuid"]),
-		UserID:    claims["sub"].(int),
+		UserID:    int(userIDFloat),
 	}, nil
 
 }
+

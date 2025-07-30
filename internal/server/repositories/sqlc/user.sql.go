@@ -47,38 +47,6 @@ func (q *Queries) DeleteUser(ctx context.Context, id int32) (int64, error) {
 	return result.RowsAffected(), nil
 }
 
-const getAllUser = `-- name: GetAllUser :many
-SELECT id, email, name, password_hash, email_verified, created_at, updated_at FROM users
-`
-
-func (q *Queries) GetAllUser(ctx context.Context) ([]User, error) {
-	rows, err := q.db.Query(ctx, getAllUser)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []User{}
-	for rows.Next() {
-		var i User
-		if err := rows.Scan(
-			&i.ID,
-			&i.Email,
-			&i.Name,
-			&i.PasswordHash,
-			&i.EmailVerified,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, email, name, password_hash, email_verified, created_at, updated_at
 FROM users
@@ -119,6 +87,46 @@ func (q *Queries) GetUserById(ctx context.Context, id int32) (User, error) {
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const listUsers = `-- name: ListUsers :many
+SELECT id, email, name, password_hash, email_verified, created_at, updated_at
+FROM users
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListUsersParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, listUsers, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []User{}
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Name,
+			&i.PasswordHash,
+			&i.EmailVerified,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateUserEmail = `-- name: UpdateUserEmail :one

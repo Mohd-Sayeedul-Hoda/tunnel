@@ -11,7 +11,10 @@ import (
 type envelope map[string]any
 
 func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
-	resp := envelope{"error": message}
+	resp := envelope{
+		"status": "failed",
+		"error":  message,
+	}
 
 	err := encoding.EncodeJson(w, r, status, resp)
 	if err != nil {
@@ -53,4 +56,9 @@ func authenticationFailedResponse(w http.ResponseWriter, r *http.Request) {
 func invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	message := "invalid authentication credentials"
 	errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
+func notPermittedResponse(w http.ResponseWriter, r *http.Request) {
+	message := "your user account doesn't have the necessary permissions to access this resource"
+	errorResponse(w, r, http.StatusForbidden, message)
 }

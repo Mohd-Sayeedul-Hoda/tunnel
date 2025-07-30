@@ -124,3 +124,36 @@ func (u *userRepo) GetById(userId int) (*models.User, error) {
 		UpdatedAt:     dbUser.UpdatedAt.Time,
 	}, nil
 }
+
+func (u *userRepo) ListUsers(limit, offset int32) (*[]models.User, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	dbUsers, err := u.queries.ListUsers(ctx, sqlc.ListUsersParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+
+	var users []models.User
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dbUser := range dbUsers {
+
+		user := models.User{
+			Id:            int(dbUser.ID),
+			Name:          dbUser.Name,
+			Email:         dbUser.Email,
+			PasswordHash:  dbUser.PasswordHash,
+			CreatedAt:     dbUser.CreatedAt.Time,
+			UpdatedAt:     dbUser.UpdatedAt.Time,
+			EmailVerified: dbUser.EmailVerified,
+		}
+		users = append(users, user)
+	}
+
+	return &users, nil
+
+}

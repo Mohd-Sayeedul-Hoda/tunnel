@@ -1,21 +1,8 @@
 package request
 
 import (
-	"errors"
-	"net/http"
 	"regexp"
-	"strconv"
 )
-
-func ReadIDParam(r *http.Request) (int, error) {
-
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil || id < 1 {
-		return 0, errors.New("invalid id parameter")
-	}
-
-	return id, nil
-}
 
 func ValidEmail(v *Valid, email string) {
 	v.Check(email != "", "email", "email must not be empty")

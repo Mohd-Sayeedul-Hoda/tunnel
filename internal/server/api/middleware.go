@@ -31,7 +31,7 @@ func NewLoggingMiddleware(next http.Handler) http.HandlerFunc {
 		next.ServeHTTP(w, r)
 
 		duration := time.Since(startTime)
-		slog.Info("api response info",
+		slog.Info("api info",
 			"status_code", lrw.statusCode,
 			"status", http.StatusText(lrw.statusCode),
 			"method", r.Method,

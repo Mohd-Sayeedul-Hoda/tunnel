@@ -5,6 +5,7 @@ import (
 )
 
 type UserRepo interface {
+	ListUsers(limit, offset int32) (*[]models.User, error)
 	GetById(userId int) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	Create(user *models.User) error

@@ -3,21 +3,42 @@ package handler
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/encoding"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/request"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/postgres"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/utils"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/password"
 )
 
-func GetAllUsers(userRepo repositories.UserRepo) http.HandlerFunc {
+func ListUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
+		page, err := request.ReadInt(r, "page", 1)
+		if err != nil {
+			badRequestResponse(w, r, err)
+			return
+		}
+
+		limit, err := request.ReadInt(r, "limit", 20)
+		if err != nil {
+			badRequestResponse(w, r, err)
+			return
+		}
+
+		users, err := userRepo.ListUsers(int32(limit), int32((page-1)*limit))
+		if err != nil {
+			ServerErrorResponse(w, r, err)
+			return
+		}
+
+		respondWithJSON(w, r, http.StatusOK, envelope{
+			"status": "success",
+			"data": envelope{
+				"users": users,
+			},
+		})
 
 	}
 }
@@ -42,10 +63,12 @@ func GetUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 			return
 		}
 
-		err = encoding.EncodeJson(w, r, http.StatusOK, envelope{"data": user})
-		if err != nil {
-			ServerErrorResponse(w, r, err)
-		}
+		respondWithJSON(w, r, http.StatusOK, envelope{
+			"status": "success",
+			"data": envelope{
+				"users": user,
+			},
+		})
 	}
 }
 
@@ -91,10 +114,12 @@ func CreateUser(userRepo repositories.UserRepo) http.HandlerFunc {
 			return
 		}
 
-		err = encoding.EncodeJson(w, r, http.StatusCreated, envelope{"data": newUser})
-		if err != nil {
-			ServerErrorResponse(w, r, err)
-		}
+		respondWithJSON(w, r, http.StatusCreated, envelope{
+			"status": "sucess",
+			"data": envelope{
+				"users": newUser,
+			},
+		})
 	}
 }
 
@@ -116,94 +141,6 @@ func DeleteUser(userRepo repositories.UserRepo) http.HandlerFunc {
 			}
 			return
 		}
-		respondWithJSON(w, r, http.StatusOK, envelope{"status": "user deleted"})
-	}
-}
-
-func AuthenticateUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo repositories.UserRepo) http.HandlerFunc {
-
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		var req request.Login
-		problems, err := encoding.Validated(w, r, &req)
-		if err != nil {
-			switch {
-			case errors.Is(err, encoding.ErrInvalidRequest):
-				badRequestResponse(w, r, err)
-			case errors.Is(err, encoding.ErrInvalidData):
-				failedValidationResponse(w, r, problems)
-			default:
-				badRequestResponse(w, r, err)
-			}
-			return
-		}
-
-		user, err := userRepo.GetByEmail(req.Email)
-		if err != nil {
-			switch {
-			case errors.Is(err, postgres.ErrNotFound):
-				invalidCredentialsResponse(w, r)
-			default:
-				ServerErrorResponse(w, r, err)
-			}
-			return
-		}
-
-		matched, err := password.MatchPassword(user.Password, req.Password)
-		if err != nil {
-			ServerErrorResponse(w, r, err)
-			return
-		}
-		if !matched {
-			invalidCredentialsResponse(w, r)
-			return
-		}
-
-		accessToken, err := utils.CreateToken(user.Id, cfg.Token.AccessTokenExpiredIn, cfg.Token.AccessTokenPrivateKey)
-		if err != nil {
-			ServerErrorResponse(w, r, err)
-			return
-		}
-
-		refreshToken, err := utils.CreateToken(user.Id, cfg.Token.RefreshTokenExpiredIn, cfg.Token.RefreshTokenPrivateKey)
-		if err != nil {
-			ServerErrorResponse(w, r, err)
-			return
-		}
-
-		now := time.Now()
-		err = cacheRepo.Set(refreshToken.TokenUuid, user.Id, time.Unix(accessToken.ExpiresIn, 0).Sub(now))
-		if err != nil {
-			ServerErrorResponse(w, r, err)
-			return
-		}
-
-		accessCookie := http.Cookie{
-			Name:     "access_token",
-			Value:    accessToken.Token,
-			Path:     "/",
-			Expires:  time.Unix(accessToken.ExpiresIn, 0),
-			HttpOnly: true,
-			Secure:   r.TLS != nil,
-			SameSite: http.SameSiteLaxMode,
-		}
-		http.SetCookie(w, &accessCookie)
-
-		refreshCookie := http.Cookie{
-			Name:     "refresh_token",
-			Value:    refreshToken.Token,
-			Path:     "/",
-			Expires:  time.Unix(refreshToken.ExpiresIn, 0),
-			HttpOnly: true,
-			Secure:   r.TLS != nil,
-			SameSite: http.SameSiteLaxMode,
-		}
-		http.SetCookie(w, &refreshCookie)
-
-		respondWithJSON(w, r, http.StatusOK, envelope{
-			"status": "authentication successfull",
-			"data": envelope{
-				"access_token": accessToken.Token,
-			}})
+		respondWithJSON(w, r, http.StatusOK, envelope{"status": "sucess"})
 	}
 }
