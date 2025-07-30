@@ -125,7 +125,7 @@ func (u *userRepo) GetById(userId int) (*models.User, error) {
 	}, nil
 }
 
-func (u *userRepo) ListUsers(limit, offset int32) (*[]models.User, error) {
+func (u *userRepo) ListUsers(limit, offset int32) ([]models.User, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -134,12 +134,11 @@ func (u *userRepo) ListUsers(limit, offset int32) (*[]models.User, error) {
 		Limit:  limit,
 		Offset: offset,
 	})
-
-	var users []models.User
 	if err != nil {
 		return nil, err
 	}
 
+	users := []models.User{}
 	for _, dbUser := range dbUsers {
 
 		user := models.User{
@@ -154,6 +153,6 @@ func (u *userRepo) ListUsers(limit, offset int32) (*[]models.User, error) {
 		users = append(users, user)
 	}
 
-	return &users, nil
+	return users, nil
 
 }

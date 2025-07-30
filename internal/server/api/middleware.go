@@ -28,7 +28,7 @@ func NewLoggingMiddleware(next http.Handler) http.HandlerFunc {
 		lrw := NewLoggingResponseWriter(w)
 		startTime := time.Now()
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(lrw, r)
 
 		duration := time.Since(startTime)
 		slog.Info("api info",
