@@ -5,7 +5,7 @@ import (
 )
 
 type Validator interface {
-	Valid(ctx context.Context) *Valid
+	Valid(ctx context.Context, v *Valid) *Valid
 }
 
 type Valid struct {

@@ -8,8 +8,7 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func (u *User) Valid(ctx context.Context) *Valid {
-	v := NewValidator()
+func (u *User) Valid(ctx context.Context, v *Valid) *Valid {
 
 	ValidEmail(v, u.Email)
 	ValidPassword(v, u.Password)
@@ -23,8 +22,7 @@ type Login struct {
 	Password string `json:"password"`
 }
 
-func (u *Login) Valid(ctx context.Context) *Valid {
-	v := NewValidator()
+func (u *Login) Valid(ctx context.Context, v *Valid) *Valid {
 
 	ValidEmail(v, u.Email)
 	ValidPassword(v, u.Password)

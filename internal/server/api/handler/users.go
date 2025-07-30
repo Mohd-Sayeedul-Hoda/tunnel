@@ -14,20 +14,20 @@ import (
 
 func ListUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
 
-		page, err := request.ReadInt(r, "page", 1)
-		if err != nil {
-			badRequestResponse(w, r, err)
+		v := request.NewValidator()
+		filters := request.Filters{}
+
+		filters.Page = request.ReadInt(r, "page", 1, v)
+		filters.Limit = request.ReadInt(r, "limit", 20, v)
+
+		if problems := filters.Valid(r.Context(), v); !problems.Valid() {
+			failedValidationResponse(w, r, problems)
 			return
 		}
 
-		limit, err := request.ReadInt(r, "limit", 20)
-		if err != nil {
-			badRequestResponse(w, r, err)
-			return
-		}
-
-		users, err := userRepo.ListUsers(int32(limit), int32((page-1)*limit))
+		users, err := userRepo.ListUsers(int32(filters.Limit), int32((filters.Page-1)*filters.Limit))
 		if err != nil {
 			ServerErrorResponse(w, r, err)
 			return
@@ -76,14 +76,14 @@ func CreateUser(userRepo repositories.UserRepo) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		v := request.NewValidator()
+
 		var user request.User
-		problem, err := encoding.Validated(w, r, &user)
+		err := encoding.Validated(w, r, v, &user)
 		if err != nil {
 			switch {
-			case errors.Is(err, encoding.ErrInvalidRequest):
-				badRequestResponse(w, r, err)
 			case errors.Is(err, encoding.ErrInvalidData):
-				failedValidationResponse(w, r, problem)
+				failedValidationResponse(w, r, v)
 			default:
 				badRequestResponse(w, r, err)
 			}
@@ -106,8 +106,8 @@ func CreateUser(userRepo repositories.UserRepo) http.HandlerFunc {
 		if err != nil {
 			switch {
 			case errors.Is(err, postgres.ErrUniqueViolation):
-				problem.AddError("email", "a user with this email address already exists")
-				failedValidationResponse(w, r, problem)
+				v.AddError("email", "a user with this email address already exists")
+				failedValidationResponse(w, r, v)
 			default:
 				ServerErrorResponse(w, r, err)
 			}

@@ -20,12 +20,14 @@ func Authenticate(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo reposi
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		v := request.NewValidator()
+
 		var req request.Login
-		problems, err := encoding.Validated(w, r, &req)
+		err := encoding.Validated(w, r, v, &req)
 		if err != nil {
 			switch {
 			case errors.Is(err, encoding.ErrInvalidData):
-				failedValidationResponse(w, r, problems)
+				failedValidationResponse(w, r, v)
 			default:
 				badRequestResponse(w, r, err)
 			}

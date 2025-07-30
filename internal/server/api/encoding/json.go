@@ -81,15 +81,15 @@ func Decode[T any](w http.ResponseWriter, r *http.Request, data *T) error {
 	return nil
 }
 
-func Validated[T request.Validator](w http.ResponseWriter, r *http.Request, data T) (*request.Valid, error) {
+func Validated[T request.Validator](w http.ResponseWriter, r *http.Request, v *request.Valid, data T) error {
 	if err := Decode(w, r, &data); err != nil {
-		return nil, err
+		return err
 	}
 
-	problem := data.Valid(r.Context())
+	problem := data.Valid(r.Context(), v)
 	if !problem.Valid() {
-		return problem, fmt.Errorf("%w: invalid %T: %d problems", ErrInvalidData, data, len(problem.Errors))
+		return fmt.Errorf("%w: invalid %T: %d problems", ErrInvalidData, data, len(problem.Errors))
 	}
 
-	return problem, nil
+	return nil
 }
