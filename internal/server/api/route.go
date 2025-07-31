@@ -16,10 +16,10 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 	mux.HandleFunc("GET /api/v1/healthcheck", handler.HealthCheck(cfg))
 
 	// users
-	authenticate := NewAuthenticateMiddleware(*cfg, userRepo)
+	authenticate := newAuthenticateMiddleware(cfg)
 	mux.Handle("GET /api/v1/users", authenticate(handler.ListUsers(userRepo)))
 	mux.Handle("GET /api/v1/users/me", authenticate(handler.GetUsers(userRepo)))
-	mux.Handle("DELETE /api/v1/users/{id}", authenticate(handler.DeleteUser(userRepo)))
+	mux.Handle("DELETE /api/v1/users/{id}", authenticate(adminOnly(handler.DeleteUser(userRepo))))
 
 	mux.Handle("POST /api/v1/auth/signup", handler.SignupUser(userRepo))
 	mux.Handle("POST /api/v1/auth/login", handler.AuthenticateUser(cfg, cacheRepo, userRepo))

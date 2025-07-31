@@ -256,7 +256,7 @@ func LogoutUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo reposito
 
 		refreshToken := r.CookiesNamed("refresh_token")
 		if len(refreshToken) == 0 {
-			notPermittedResponse(w, r)
+			NotPermittedResponse(w, r)
 			return
 		}
 
@@ -264,7 +264,7 @@ func LogoutUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo reposito
 		if err != nil {
 			switch {
 			case errors.Is(err, utils.ErrTokenExpired), errors.Is(err, utils.ErrInvalidClaims):
-				notPermittedResponse(w, r)
+				NotPermittedResponse(w, r)
 			default:
 				ServerErrorResponse(w, r, err)
 			}
@@ -311,7 +311,7 @@ func RefreshUserAccessToken(cfg *config.Config, cache cache.CacheRepo, userRepo 
 
 		RefreshToken, err := r.Cookie("refresh_token")
 		if err != nil {
-			notPermittedResponse(w, r)
+			NotPermittedResponse(w, r)
 			return
 		}
 
@@ -319,7 +319,7 @@ func RefreshUserAccessToken(cfg *config.Config, cache cache.CacheRepo, userRepo 
 		if err != nil {
 			switch {
 			case errors.Is(err, utils.ErrTokenExpired), errors.Is(err, utils.ErrInvalidClaims):
-				notPermittedResponse(w, r)
+				NotPermittedResponse(w, r)
 			default:
 				ServerErrorResponse(w, r, err)
 			}
@@ -328,20 +328,20 @@ func RefreshUserAccessToken(cfg *config.Config, cache cache.CacheRepo, userRepo 
 
 		userIdStr, err := cache.Get(tokenClaims.TokenUuid)
 		if err != nil {
-			notPermittedResponse(w, r)
+			NotPermittedResponse(w, r)
 			return
 		}
 
 		userId, err := strconv.Atoi(userIdStr)
 		if err != nil {
-			notPermittedResponse(w, r)
+			NotPermittedResponse(w, r)
 			return
 		}
 		user, err := userRepo.GetById(userId)
 		if err != nil {
 			switch {
 			case errors.Is(err, postgres.ErrNotFound):
-				notPermittedResponse(w, r)
+				NotPermittedResponse(w, r)
 			default:
 				ServerErrorResponse(w, r, err)
 			}

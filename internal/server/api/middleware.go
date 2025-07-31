@@ -11,7 +11,6 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/handler"
 	tools "github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/utils"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/utils"
 )
 
@@ -61,13 +60,13 @@ func RecoverPanic(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func NewAuthenticateMiddleware(cfg config.Config, userRepo repositories.UserRepo) func(http.Handler) http.Handler {
+func newAuthenticateMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return Authenticate(cfg, userRepo, next)
+		return authenticate(cfg, next)
 	}
 }
 
-func Authenticate(cfg config.Config, userRepo repositories.UserRepo, next http.Handler) http.Handler {
+func authenticate(cfg *config.Config, next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -99,6 +98,17 @@ func Authenticate(cfg config.Config, userRepo repositories.UserRepo, next http.H
 		}
 
 		r = tools.ContextSetToken(r, tokenDetail)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func adminOnly(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := tools.ContextGetToken(r)
+		if !token.IsAdmin {
+			handler.NotPermittedResponse(w, r)
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

@@ -63,7 +63,7 @@ func InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
-func notPermittedResponse(w http.ResponseWriter, r *http.Request) {
+func NotPermittedResponse(w http.ResponseWriter, r *http.Request) {
 	message := "your user account doesn't have the necessary permissions to access this resource"
 	errorResponse(w, r, http.StatusForbidden, message)
 }

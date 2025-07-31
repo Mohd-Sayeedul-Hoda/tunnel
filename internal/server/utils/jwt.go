@@ -17,6 +17,7 @@ type TokenDetails struct {
 	TokenUuid string
 	UserID    int
 	Verified  bool
+	IsAdmin   bool
 	ExpiresIn int64
 }
 
@@ -39,6 +40,7 @@ func CreateToken(user *models.User, ttl time.Duration, privateKey string) (*Toke
 	td.TokenUuid = uuid.String()
 	td.UserID = user.Id
 	td.Verified = user.EmailVerified
+	td.IsAdmin = user.IsAdmin
 
 	cleanPrivateKey := strings.TrimSpace(privateKey)
 	decodePrivateKey, err := base64.StdEncoding.DecodeString(cleanPrivateKey)
@@ -55,6 +57,7 @@ func CreateToken(user *models.User, ttl time.Duration, privateKey string) (*Toke
 	atClaims["sub"] = user.Id
 	atClaims["token_uuid"] = td.TokenUuid
 	atClaims["verified"] = td.Verified
+	atClaims["admin"] = td.IsAdmin
 	atClaims["exp"] = td.ExpiresIn
 	atClaims["iat"] = now.Unix()
 	atClaims["nbf"] = now.Unix()
@@ -107,6 +110,7 @@ func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
 		TokenUuid: fmt.Sprint(claims["token_uuid"]),
 		Verified:  claims["verified"].(bool),
 		UserID:    int(userIDFloat),
+		IsAdmin:   claims["admin"].(bool),
 	}, nil
 
 }
