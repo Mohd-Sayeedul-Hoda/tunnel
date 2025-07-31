@@ -33,9 +33,9 @@ type Config struct {
 		RefreshTokenExpiredIn  time.Duration
 		RefreshTokenMaxAge     uint
 	}
-	AppVersion    int    // app version like 1
-	AppEnviroment string //  prod|dev|debug
-	Debug         bool   // run code in debug mode mostly debug log will be displayed
+	AppVersion int    // app version like 1
+	AppEnv     string //  prod|dev|debug
+	Debug      bool   // run code in debug mode mostly debug log will be displayed
 }
 
 func (c *Config) validate() error {
@@ -74,7 +74,7 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 	cfg.Cache.DSN = getEnvString(getenv, "REDIS_DSN", "")
 
 	cfg.AppVersion = getEnvInt(getenv, "APP_VERSION", 1)
-	cfg.AppEnviroment = getEnvString(getenv, "APP_ENV", "development")
+	cfg.AppEnv = getEnvString(getenv, "APP_ENV", "development")
 
 	cfg.Token.AccessTokenPublicKey = getEnvString(getenv, "ACCESS_TOKEN_PUBLIC_KEY", "")
 	cfg.Token.AccessTokenPrivateKey = getEnvString(getenv, "ACCESS_TOKEN_PRIVATE_KEY", "")
@@ -108,7 +108,7 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 	}
 
 	if cfg.Debug {
-		cfg.AppEnviroment = "debug"
+		cfg.AppEnv = "debug"
 	}
 
 	if err := cfg.validate(); err != nil {

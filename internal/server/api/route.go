@@ -16,13 +16,14 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 	mux.HandleFunc("GET /api/v1/healthcheck", handler.HealthCheck(cfg))
 
 	// users
-	mux.HandleFunc("GET /api/v1/users", handler.ListUsers(userRepo))
-	mux.HandleFunc("GET /api/v1/users/{id}", handler.GetUsers(userRepo))
-	mux.HandleFunc("DELETE /api/v1/users/{id}", handler.DeleteUser(userRepo))
-	mux.HandleFunc("POST /api/v1/users", handler.CreateUser(userRepo))
+	authenticate := NewAuthenticateMiddleware(*cfg, userRepo)
+	mux.Handle("GET /api/v1/users", authenticate(handler.ListUsers(userRepo)))
+	mux.Handle("GET /api/v1/users/me", authenticate(handler.GetUsers(userRepo)))
+	mux.Handle("DELETE /api/v1/users/{id}", authenticate(handler.DeleteUser(userRepo)))
 
-	mux.HandleFunc("POST /api/v1/auth/login", handler.AuthenticateUser(cfg, cacheRepo, userRepo))
-	mux.HandleFunc("GET /api/v1/auth/refresh-token", handler.RefreshUserAccessToken(cfg, cacheRepo, userRepo))
+	mux.Handle("POST /api/v1/auth/signup", handler.SignupUser(userRepo))
+	mux.Handle("POST /api/v1/auth/login", handler.AuthenticateUser(cfg, cacheRepo, userRepo))
+	mux.Handle("GET /api/v1/auth/refresh-token", handler.RefreshUserAccessToken(cfg, cacheRepo, userRepo))
 	mux.Handle("GET /api/v1/auth/logout", handler.LogoutUser(cfg, cacheRepo, userRepo))
 
 }

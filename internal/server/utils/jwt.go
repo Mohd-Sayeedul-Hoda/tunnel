@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
@@ -15,6 +16,7 @@ type TokenDetails struct {
 	Token     string
 	TokenUuid string
 	UserID    int
+	Verified  bool
 	ExpiresIn int64
 }
 
@@ -23,7 +25,7 @@ var (
 	ErrTokenExpired  = errors.New("token is expired")
 )
 
-func CreateToken(userId int, ttl time.Duration, privateKey string) (*TokenDetails, error) {
+func CreateToken(user *models.User, ttl time.Duration, privateKey string) (*TokenDetails, error) {
 	now := time.Now().UTC()
 	td := &TokenDetails{
 		ExpiresIn: now.Add(ttl).Unix(),
@@ -35,7 +37,8 @@ func CreateToken(userId int, ttl time.Duration, privateKey string) (*TokenDetail
 	}
 
 	td.TokenUuid = uuid.String()
-	td.UserID = userId
+	td.UserID = user.Id
+	td.Verified = user.EmailVerified
 
 	cleanPrivateKey := strings.TrimSpace(privateKey)
 	decodePrivateKey, err := base64.StdEncoding.DecodeString(cleanPrivateKey)
@@ -49,8 +52,9 @@ func CreateToken(userId int, ttl time.Duration, privateKey string) (*TokenDetail
 	}
 
 	atClaims := make(jwt.MapClaims)
-	atClaims["sub"] = userId
+	atClaims["sub"] = user.Id
 	atClaims["token_uuid"] = td.TokenUuid
+	atClaims["verified"] = td.Verified
 	atClaims["exp"] = td.ExpiresIn
 	atClaims["iat"] = now.Unix()
 	atClaims["nbf"] = now.Unix()
@@ -63,7 +67,7 @@ func CreateToken(userId int, ttl time.Duration, privateKey string) (*TokenDetail
 	return td, nil
 }
 
-func ValidetToken(token string, publicKey string) (*TokenDetails, error) {
+func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
 
 	cleanPublicKey := strings.TrimSpace(publicKey)
 	decodePublicKey, err := base64.StdEncoding.DecodeString(cleanPublicKey)
@@ -101,6 +105,7 @@ func ValidetToken(token string, publicKey string) (*TokenDetails, error) {
 
 	return &TokenDetails{
 		TokenUuid: fmt.Sprint(claims["token_uuid"]),
+		Verified:  claims["verified"].(bool),
 		UserID:    int(userIDFloat),
 	}, nil
 

@@ -48,12 +48,17 @@ func failedValidationResponse(w http.ResponseWriter, r *http.Request, errors *re
 	errorResponse(w, r, http.StatusUnprocessableEntity, errors.Errors)
 }
 
-func authenticationFailedResponse(w http.ResponseWriter, r *http.Request) {
+func AuthenticationFailedResponse(w http.ResponseWriter, r *http.Request) {
 	message := "authentication failed"
 	errorResponse(w, r, http.StatusUnauthorized, message)
 }
 
-func invalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
+func TokenExpireResponse(w http.ResponseWriter, r *http.Request) {
+	message := "token expired"
+	errorResponse(w, r, http.StatusUnauthorized, message)
+}
+
+func InvalidCredentialsResponse(w http.ResponseWriter, r *http.Request) {
 	message := "invalid authentication credentials"
 	errorResponse(w, r, http.StatusUnauthorized, message)
 }

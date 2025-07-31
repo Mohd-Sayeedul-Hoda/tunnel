@@ -1,12 +1,18 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/handler"
+	tools "github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/utils"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/utils"
 )
 
 type logRespWriter struct {
@@ -53,4 +59,46 @@ func RecoverPanic(next http.Handler) http.HandlerFunc {
 
 		next.ServeHTTP(w, r)
 	}
+}
+
+func NewAuthenticateMiddleware(cfg config.Config, userRepo repositories.UserRepo) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return Authenticate(cfg, userRepo, next)
+	}
+}
+
+func Authenticate(cfg config.Config, userRepo repositories.UserRepo, next http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		var accessToken string
+
+		if r.Header.Get("Authorization") != "" {
+			slog.Info(r.Header.Get("Authorization"))
+			accessToken = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		} else {
+			cookie, err := r.Cookie("jwt")
+			if err != nil {
+				handler.InvalidCredentialsResponse(w, r)
+				return
+			}
+			accessToken = cookie.Value
+		}
+
+		tokenDetail, err := utils.ValidateToken(accessToken, cfg.Token.AccessTokenPublicKey)
+		if err != nil {
+			switch {
+			case errors.Is(err, utils.ErrTokenExpired):
+				handler.TokenExpireResponse(w, r)
+			case errors.Is(err, utils.ErrInvalidClaims):
+				handler.InvalidCredentialsResponse(w, r)
+			default:
+				handler.ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		r = tools.ContextSetToken(r, tokenDetail)
+		next.ServeHTTP(w, r)
+	})
 }

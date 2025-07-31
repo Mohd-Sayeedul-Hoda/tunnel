@@ -9,15 +9,15 @@ import (
 
 func NewLogger(cfg *config.Config, out io.Writer) *slog.Logger {
 	level := slog.LevelInfo
-	if cfg.AppEnviroment == "debug" {
+	if cfg.AppEnv == "debug" {
 		level = slog.LevelDebug
 	}
 
 	opts := &slog.HandlerOptions{Level: level}
 
 	var handler slog.Handler
-	switch cfg.AppEnviroment {
-	case "production":
+	switch cfg.AppEnv {
+	case "prod":
 		handler = slog.NewJSONHandler(out, opts)
 	default:
 		handler = slog.NewTextHandler(out, opts)

@@ -31,7 +31,7 @@ func HealthCheck(cfg *config.Config) http.HandlerFunc {
 		data := map[string]any{
 			"status":     http.StatusOK,
 			"version":    cfg.AppVersion,
-			"enviroment": cfg.AppEnviroment,
+			"enviroment": cfg.AppEnv,
 			"message":    "service is healthy",
 		}
 		respondWithJSON(w, r, http.StatusOK, data)

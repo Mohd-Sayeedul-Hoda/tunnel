@@ -8,6 +8,7 @@ import (
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/encoding"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/request"
+	tools "github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/utils"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
@@ -51,13 +52,9 @@ func ListUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 func GetUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		userId, err := request.ReadIDParam(r)
-		if err != nil {
-			notFoundResponse(w, r)
-			return
-		}
+		token := tools.ContextGetToken(r)
 
-		user, err := userRepo.GetById(userId)
+		user, err := userRepo.GetById(token.UserID)
 		if err != nil {
 			switch {
 			case errors.Is(err, postgres.ErrNotFound):
@@ -77,7 +74,7 @@ func GetUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 	}
 }
 
-func CreateUser(userRepo repositories.UserRepo) http.HandlerFunc {
+func SignupUser(userRepo repositories.UserRepo) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -172,7 +169,7 @@ func AuthenticateUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo re
 		if err != nil {
 			switch {
 			case errors.Is(err, postgres.ErrNotFound):
-				invalidCredentialsResponse(w, r)
+				InvalidCredentialsResponse(w, r)
 			default:
 				ServerErrorResponse(w, r, err)
 			}
@@ -185,17 +182,17 @@ func AuthenticateUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo re
 			return
 		}
 		if !matched {
-			invalidCredentialsResponse(w, r)
+			InvalidCredentialsResponse(w, r)
 			return
 		}
 
-		jwt, err := utils.CreateToken(user.Id, cfg.Token.AccessTokenExpiredIn, cfg.Token.AccessTokenPrivateKey)
+		jwt, err := utils.CreateToken(user, cfg.Token.AccessTokenExpiredIn, cfg.Token.AccessTokenPrivateKey)
 		if err != nil {
 			ServerErrorResponse(w, r, err)
 			return
 		}
 
-		refreshToken, err := utils.CreateToken(user.Id, cfg.Token.RefreshTokenExpiredIn, cfg.Token.RefreshTokenPrivateKey)
+		refreshToken, err := utils.CreateToken(user, cfg.Token.RefreshTokenExpiredIn, cfg.Token.RefreshTokenPrivateKey)
 		if err != nil {
 			ServerErrorResponse(w, r, err)
 			return
@@ -240,11 +237,17 @@ func AuthenticateUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo re
 		}
 		http.SetCookie(w, &loginCookie)
 
-		respondWithJSON(w, r, http.StatusOK, envelope{
+		response := envelope{
 			"status": "success",
-			"data": envelope{
+		}
+
+		if cfg.AppEnv != "prod" {
+			response["data"] = envelope{
 				"access_token": jwt.Token,
-			}})
+			}
+		}
+
+		respondWithJSON(w, r, http.StatusOK, response)
 	}
 }
 
@@ -257,7 +260,7 @@ func LogoutUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo reposito
 			return
 		}
 
-		tokenClaims, err := utils.ValidetToken(refreshToken[len(refreshToken)-1].Value, cfg.Token.RefreshTokenPublicKey)
+		tokenClaims, err := utils.ValidateToken(refreshToken[len(refreshToken)-1].Value, cfg.Token.RefreshTokenPublicKey)
 		if err != nil {
 			switch {
 			case errors.Is(err, utils.ErrTokenExpired), errors.Is(err, utils.ErrInvalidClaims):
@@ -306,13 +309,13 @@ func LogoutUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo reposito
 func RefreshUserAccessToken(cfg *config.Config, cache cache.CacheRepo, userRepo repositories.UserRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		RefreshToken := r.CookiesNamed("refresh_token")
-		if len(RefreshToken) == 0 {
+		RefreshToken, err := r.Cookie("refresh_token")
+		if err != nil {
 			notPermittedResponse(w, r)
 			return
 		}
 
-		tokenClaims, err := utils.ValidetToken(RefreshToken[len(RefreshToken)-1].Value, cfg.Token.RefreshTokenPublicKey)
+		tokenClaims, err := utils.ValidateToken(RefreshToken.Value, cfg.Token.RefreshTokenPublicKey)
 		if err != nil {
 			switch {
 			case errors.Is(err, utils.ErrTokenExpired), errors.Is(err, utils.ErrInvalidClaims):
@@ -345,7 +348,7 @@ func RefreshUserAccessToken(cfg *config.Config, cache cache.CacheRepo, userRepo 
 			return
 		}
 
-		jwt, err := utils.CreateToken(user.Id, cfg.Token.AccessTokenExpiredIn, cfg.Token.AccessTokenPrivateKey)
+		jwt, err := utils.CreateToken(user, cfg.Token.AccessTokenExpiredIn, cfg.Token.AccessTokenPrivateKey)
 		if err != nil {
 			ServerErrorResponse(w, r, err)
 			return
@@ -372,11 +375,17 @@ func RefreshUserAccessToken(cfg *config.Config, cache cache.CacheRepo, userRepo 
 		}
 		http.SetCookie(w, &loginCookie)
 
-		respondWithJSON(w, r, http.StatusOK, envelope{
-			"status": "token refreshed successfully",
-			"data": envelope{
+		response := envelope{
+			"status": "success",
+		}
+
+		if cfg.AppEnv != "prod" {
+			response["data"] = envelope{
 				"access_token": jwt.Token,
-			}})
+			}
+		}
+
+		respondWithJSON(w, r, http.StatusOK, response)
 
 	}
 }

@@ -48,7 +48,7 @@ func TestCreateAndValidateToken(t *testing.T) {
 	// Generate keys for the test.
 	privateKey, publicKey := generateTestKeys(t)
 
-	userID := "test-user-123"
+	userID := 1234
 	ttl := 5 * time.Minute
 
 	createdTokenDetails, err := CreateToken(userID, ttl, privateKey)
@@ -62,7 +62,7 @@ func TestCreateAndValidateToken(t *testing.T) {
 		t.Fatalf("CreateToken() returned an empty token string")
 	}
 
-	validatedTokenDetails, err := ValidetToken(createdTokenDetails.Token, publicKey)
+	validatedTokenDetails, err := ValidateToken(createdTokenDetails.Token, publicKey)
 	if err != nil {
 		t.Fatalf("ValidetToken() returned an unexpected error: %v", err)
 	}

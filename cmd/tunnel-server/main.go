@@ -80,7 +80,7 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 		slog.Info("http server running",
 			slog.String("host", cfg.Server.Host),
 			slog.Int("port", cfg.Server.Port),
-			slog.String("app-env", cfg.AppEnviroment),
+			slog.String("app-env", cfg.AppEnv),
 			slog.Int("app-version", cfg.AppVersion),
 		)
 
