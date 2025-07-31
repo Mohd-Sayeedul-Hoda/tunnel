@@ -15,8 +15,8 @@ func SetPassword(password string) ([]byte, error) {
 	return hash, nil
 }
 
-func MatchPassword(hash, password string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+func MatchPassword(hash []byte, password string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(hash, []byte(password))
 	if err != nil {
 		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):

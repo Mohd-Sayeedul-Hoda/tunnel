@@ -21,7 +21,8 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 	mux.HandleFunc("DELETE /api/v1/users/{id}", handler.DeleteUser(userRepo))
 	mux.HandleFunc("POST /api/v1/users", handler.CreateUser(userRepo))
 
-	mux.HandleFunc("POST /api/v1/auth/authentication", handler.Authenticate(cfg, cacheRepo, userRepo))
-	mux.HandleFunc("GET /api/v1/auth/refresh", handler.RefreshAccessToken(cfg, cacheRepo, userRepo))
+	mux.HandleFunc("POST /api/v1/auth/login", handler.AuthenticateUser(cfg, cacheRepo, userRepo))
+	mux.HandleFunc("GET /api/v1/auth/refresh-token", handler.RefreshUserAccessToken(cfg, cacheRepo, userRepo))
+	mux.Handle("GET /api/v1/auth/logout", handler.LogoutUser(cfg, cacheRepo, userRepo))
 
 }

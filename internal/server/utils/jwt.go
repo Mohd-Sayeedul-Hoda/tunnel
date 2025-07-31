@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -36,10 +37,12 @@ func CreateToken(userId int, ttl time.Duration, privateKey string) (*TokenDetail
 	td.TokenUuid = uuid.String()
 	td.UserID = userId
 
-	decodePrivateKey, err := base64.StdEncoding.DecodeString(privateKey)
+	cleanPrivateKey := strings.TrimSpace(privateKey)
+	decodePrivateKey, err := base64.StdEncoding.DecodeString(cleanPrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode private key: %w", err)
 	}
+
 	key, err := jwt.ParseEdPrivateKeyFromPEM(decodePrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse token private key: %w", err)
@@ -61,7 +64,9 @@ func CreateToken(userId int, ttl time.Duration, privateKey string) (*TokenDetail
 }
 
 func ValidetToken(token string, publicKey string) (*TokenDetails, error) {
-	decodePublicKey, err := base64.StdEncoding.DecodeString(publicKey)
+
+	cleanPublicKey := strings.TrimSpace(publicKey)
+	decodePublicKey, err := base64.StdEncoding.DecodeString(cleanPublicKey)
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode public key: %w", err)
 	}
@@ -100,4 +105,3 @@ func ValidetToken(token string, publicKey string) (*TokenDetails, error) {
 	}, nil
 
 }
-

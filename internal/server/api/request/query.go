@@ -17,14 +17,14 @@ func ReadIDParam(r *http.Request) (int, error) {
 	return id, nil
 }
 
-func ReadInt(r *http.Request, key string, defaultValue int, v *Valid) int {
+func ReadInt(r *http.Request, v *Valid, key string, defaultValue int) int {
 	valueStr := r.URL.Query().Get(key)
 	if valueStr == "" {
 		return defaultValue
 	}
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		v.AddError(key, fmt.Sprintf("Query parameter '%s' must be an integer", key))
+		v.AddError(key, fmt.Sprintf("query parameter '%s' must be an integer", key))
 		return defaultValue
 	}
 	return value
