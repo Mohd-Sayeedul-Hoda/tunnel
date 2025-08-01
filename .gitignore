@@ -1,3 +1,4 @@
 .env
 todo.md
 tmp/
+node_modules/
