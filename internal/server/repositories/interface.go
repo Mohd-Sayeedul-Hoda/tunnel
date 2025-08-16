@@ -13,4 +13,7 @@ type UserRepo interface {
 }
 
 type APIRepo interface {
+	CreateAPIKey(apiKey *models.APIKey) error
+	ListAPIKeys(userId, limit, offset int32) ([]models.APIKey, error)
+	DeleteAPIKey(keyId, userId int32) error
 }
