@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS users(
   name VARCHAR(300) NOT NULL,
   password_hash BYTEA NOT NULL,
   email_verified BOOL NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 -- +goose StatementEnd
 

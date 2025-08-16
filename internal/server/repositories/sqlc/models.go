@@ -8,13 +8,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Session struct {
-	ID        int32              `json:"id"`
-	UserID    int32              `json:"user_id"`
-	Token     string             `json:"token"`
-	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
-	IpAddress string             `json:"ip_address"`
-	UserAgent string             `json:"user_agent"`
+type ApiKey struct {
+	ID          int32              `json:"id"`
+	Name        string             `json:"name"`
+	Prefix      string             `json:"prefix"`
+	ApiKey      string             `json:"api_key"`
+	UserID      int32              `json:"user_id"`
+	Permissions []string           `json:"permissions"`
+	Metadata    []byte             `json:"metadata"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {

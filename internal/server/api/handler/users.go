@@ -243,7 +243,8 @@ func AuthenticateUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo re
 
 		if cfg.AppEnv != "prod" {
 			response["data"] = envelope{
-				"access_token": jwt.Token,
+				"access_token":  jwt.Token,
+				"refresh_token": refreshToken.Token,
 			}
 		}
 

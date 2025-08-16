@@ -17,8 +17,8 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 
 	// users
 	authenticate := newAuthenticateMiddleware(cfg)
-	mux.Handle("GET /api/v1/users/me", authenticate(handler.GetUsers(userRepo)))
 	mux.Handle("GET /api/v1/users", authenticate(adminOnly(handler.ListUsers(userRepo))))
+	mux.Handle("GET /api/v1/users/me", authenticate(handler.GetUsers(userRepo)))
 	mux.Handle("DELETE /api/v1/users/{id}", authenticate(adminOnly(handler.DeleteUser(userRepo))))
 
 	mux.Handle("POST /api/v1/auth/signup", handler.SignupUser(userRepo))
