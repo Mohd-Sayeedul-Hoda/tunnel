@@ -11,3 +11,6 @@ type UserRepo interface {
 	Create(user *models.User) error
 	Delete(userId int) error
 }
+
+type APIRepo interface {
+}

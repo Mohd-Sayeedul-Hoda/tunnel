@@ -14,7 +14,7 @@ import (
 const createAPIKey = `-- name: CreateAPIKey :one
 INSERT INTO api_keys (name, prefix, api_key, user_id, permissions, expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, name, prefix, api_key, user_id, permissions, expires_at
+RETURNING id, created_at
 `
 
 type CreateAPIKeyParams struct {
@@ -27,13 +27,8 @@ type CreateAPIKeyParams struct {
 }
 
 type CreateAPIKeyRow struct {
-	ID          int32              `json:"id"`
-	Name        string             `json:"name"`
-	Prefix      string             `json:"prefix"`
-	ApiKey      string             `json:"api_key"`
-	UserID      int32              `json:"user_id"`
-	Permissions []string           `json:"permissions"`
-	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	ID        int32              `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 func (q *Queries) CreateAPIKey(ctx context.Context, arg CreateAPIKeyParams) (CreateAPIKeyRow, error) {
@@ -46,32 +41,39 @@ func (q *Queries) CreateAPIKey(ctx context.Context, arg CreateAPIKeyParams) (Cre
 		arg.ExpiresAt,
 	)
 	var i CreateAPIKeyRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Prefix,
-		&i.ApiKey,
-		&i.UserID,
-		&i.Permissions,
-		&i.ExpiresAt,
-	)
+	err := row.Scan(&i.ID, &i.CreatedAt)
 	return i, err
 }
 
-const deleteAPIKey = `-- name: DeleteAPIKey :exec
-DELETE FROM api_keys where id = $1
+const deleteAPIKey = `-- name: DeleteAPIKey :execrows
+DELETE FROM api_keys where id = $1 and user_id = $2
 `
 
-func (q *Queries) DeleteAPIKey(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, deleteAPIKey, id)
-	return err
+type DeleteAPIKeyParams struct {
+	ID     int32 `json:"id"`
+	UserID int32 `json:"user_id"`
+}
+
+func (q *Queries) DeleteAPIKey(ctx context.Context, arg DeleteAPIKeyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteAPIKey, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const listAPIKeys = `-- name: ListAPIKeys :many
 SELECT id, name, prefix, api_key, user_id, permissions, expires_at, created_at
 FROM api_keys
 WHERE user_id = $1
+LIMIT $2 OFFSET $3
 `
+
+type ListAPIKeysParams struct {
+	UserID int32 `json:"user_id"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 type ListAPIKeysRow struct {
 	ID          int32              `json:"id"`
@@ -84,8 +86,8 @@ type ListAPIKeysRow struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
-func (q *Queries) ListAPIKeys(ctx context.Context, userID int32) ([]ListAPIKeysRow, error) {
-	rows, err := q.db.Query(ctx, listAPIKeys, userID)
+func (q *Queries) ListAPIKeys(ctx context.Context, arg ListAPIKeysParams) ([]ListAPIKeysRow, error) {
+	rows, err := q.db.Query(ctx, listAPIKeys, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

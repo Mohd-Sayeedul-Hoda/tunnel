@@ -13,3 +13,14 @@ type User struct {
 	EmailVerified bool      `json:"-"`
 	IsAdmin       bool      `json:"-"`
 }
+
+type APIKey struct {
+	Id          int       `json:"id"`
+	Name        string    `json:"name"`
+	Prefix      string    `json:"prefix"`
+	APIKeyToken string    `json:"api_key"`
+	UserId      int       `json:"user_id"`
+	ExpireAt    time.Time `json:"expire_at"`
+	CreatedAt   time.Time `json:"created_at"`
+	Permissions []string  `json:"permission"`
+}
