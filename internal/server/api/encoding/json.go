@@ -70,6 +70,7 @@ func Decode[T any](w http.ResponseWriter, r *http.Request, data *T) error {
 		case errors.As(err, &maxBytesError):
 			return fmt.Errorf("%w: body must not be larger than %d bytes", ErrInvalidRequest, maxBytesError.Limit)
 
+			// invalid argument when pass to decode function
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
 

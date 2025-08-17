@@ -23,17 +23,17 @@ func ListUsers(userRepo repositories.UserRepo) http.HandlerFunc {
 		var err error
 
 		v := request.NewValidator()
-		filters := request.Filters{}
+		filters := request.Pagination{}
 
 		filters.Page = request.ReadInt(r, v, "page", 1)
 		filters.Limit = request.ReadInt(r, v, "limit", 20)
-
-		if problems := filters.Valid(r.Context(), v); !problems.Valid() {
-			failedValidationResponse(w, r, problems)
+		v = filters.Valid(r.Context(), v)
+		if !v.Valid() {
+			failedValidationResponse(w, r, v)
 			return
 		}
 
-		users, err := userRepo.ListUsers(int32(filters.Limit), int32((filters.Page-1)*filters.Limit))
+		users, err := userRepo.ListUsers(filters.Limit, (filters.Page-1)*filters.Limit)
 		if err != nil {
 			ServerErrorResponse(w, r, err)
 			return

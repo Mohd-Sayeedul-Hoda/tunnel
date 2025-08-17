@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -21,6 +24,12 @@ type TokenDetails struct {
 	ExpiresIn int64
 }
 
+type APIKeyDetails struct {
+	KeyHash string
+	Prefix  string
+	FullKey string
+}
+
 var (
 	ErrInvalidClaims = errors.New("invalid token claims")
 	ErrTokenExpired  = errors.New("token is expired")
@@ -34,7 +43,7 @@ func CreateToken(user *models.User, ttl time.Duration, privateKey string) (*Toke
 
 	uuid, err := uuid.NewV7()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize uuid: %w", err)
 	}
 
 	td.TokenUuid = uuid.String()
@@ -113,4 +122,29 @@ func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
 		IsAdmin:   claims["admin"].(bool),
 	}, nil
 
+}
+
+func GenerateAPIKeyToken(n int) (*APIKeyDetails, error) {
+
+	uuid, err := uuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize uuid: %w", err)
+	}
+	prefix := "ak_" + uuid.String()[:8]
+
+	b := make([]byte, n)
+	_, err = rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	tokenPart := base64.RawURLEncoding.EncodeToString(b)
+
+	fullKey := prefix + "." + tokenPart
+	hash := sha256.Sum256([]byte(b))
+
+	return &APIKeyDetails{
+		Prefix:  prefix,
+		FullKey: fullKey,
+		KeyHash: hex.EncodeToString(hash[:]),
+	}, nil
 }

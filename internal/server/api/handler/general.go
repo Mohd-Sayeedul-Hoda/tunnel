@@ -11,7 +11,7 @@ func HandleRoot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var data map[string]any
 		if r.URL.Path != "/" || r.Method != "GET" {
-			http.NotFound(w, r)
+			errorResponse(w, r, http.StatusNotFound, "path not found")
 			return
 		}
 

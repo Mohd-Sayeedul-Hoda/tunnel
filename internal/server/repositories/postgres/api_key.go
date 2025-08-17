@@ -10,6 +10,8 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/sqlc"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -47,12 +49,18 @@ func (a *apiKeyRepo) CreateAPIKey(apiKey *models.APIKey) error {
 	createdAPIKey, err := a.queries.CreateAPIKey(ctx, sqlc.CreateAPIKeyParams{
 		Name:        apiKey.Name,
 		Prefix:      apiKey.Prefix,
-		ApiKey:      apiKey.APIKeyToken,
+		ApiKey:      apiKey.APIKeyHash,
 		UserID:      int32(apiKey.UserId),
 		Permissions: apiKey.Permissions,
 		ExpiresAt:   expiredAt,
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == pgerrcode.UniqueViolation {
+				return fmt.Errorf("%w: %w", ErrUniqueViolation, err)
+			}
+		}
 		return fmt.Errorf("failed to create API key: %w", err)
 	}
 
@@ -62,15 +70,15 @@ func (a *apiKeyRepo) CreateAPIKey(apiKey *models.APIKey) error {
 	return nil
 }
 
-func (a *apiKeyRepo) ListAPIKeys(userId, limit, offset int32) ([]models.APIKey, error) {
+func (a *apiKeyRepo) ListAPIKeys(userId, limit, offset int) ([]models.APIKey, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
 	keys, err := a.queries.ListAPIKeys(ctx, sqlc.ListAPIKeysParams{
-		UserID: userId,
-		Limit:  limit,
-		Offset: offset,
+		UserID: int32(userId),
+		Limit:  int32(limit),
+		Offset: int32(offset),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list api key: %w", err)
@@ -83,7 +91,7 @@ func (a *apiKeyRepo) ListAPIKeys(userId, limit, offset int32) ([]models.APIKey, 
 			Id:          int(v.ID),
 			Name:        v.Name,
 			Prefix:      v.Prefix,
-			APIKeyToken: v.ApiKey,
+			APIKeyHash:  v.ApiKey,
 			UserId:      int(v.UserID),
 			ExpireAt:    v.ExpiresAt.Time,
 			CreatedAt:   v.CreatedAt.Time,
@@ -96,14 +104,14 @@ func (a *apiKeyRepo) ListAPIKeys(userId, limit, offset int32) ([]models.APIKey, 
 	return modelKeys, nil
 }
 
-func (a *apiKeyRepo) DeleteAPIKey(keyId, userId int32) error {
+func (a *apiKeyRepo) DeleteAPIKey(userId, keyId int) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
 	rows, err := a.queries.DeleteAPIKey(ctx, sqlc.DeleteAPIKeyParams{
-		ID:     keyId,
-		UserID: userId,
+		ID:     int32(keyId),
+		UserID: int32(userId),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to delete api key: %w", err)

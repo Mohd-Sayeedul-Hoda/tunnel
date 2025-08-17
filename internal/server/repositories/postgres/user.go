@@ -125,14 +125,14 @@ func (u *userRepo) GetById(userId int) (*models.User, error) {
 	}, nil
 }
 
-func (u *userRepo) ListUsers(limit, offset int32) ([]models.User, error) {
+func (u *userRepo) ListUsers(limit, offset int) ([]models.User, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	dbUsers, err := u.queries.ListUsers(ctx, sqlc.ListUsersParams{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int32(limit),
+		Offset: int32(offset),
 	})
 	if err != nil {
 		return nil, err

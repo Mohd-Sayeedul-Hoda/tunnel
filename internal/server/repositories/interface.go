@@ -5,7 +5,7 @@ import (
 )
 
 type UserRepo interface {
-	ListUsers(limit, offset int32) ([]models.User, error)
+	ListUsers(limit, offset int) ([]models.User, error)
 	GetById(userId int) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
 	Create(user *models.User) error
@@ -14,6 +14,6 @@ type UserRepo interface {
 
 type APIRepo interface {
 	CreateAPIKey(apiKey *models.APIKey) error
-	ListAPIKeys(userId, limit, offset int32) ([]models.APIKey, error)
-	DeleteAPIKey(keyId, userId int32) error
+	ListAPIKeys(userId, limit, offset int) ([]models.APIKey, error)
+	DeleteAPIKey(userId, keyId int) error
 }
