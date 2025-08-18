@@ -102,6 +102,9 @@ func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			return nil, ErrTokenExpired
 		}
+		if errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+			return nil, ErrInvalidClaims
+		}
 		return nil, err
 	}
 

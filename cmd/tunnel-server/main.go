@@ -61,13 +61,18 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 		return err
 	}
 
+	apiKeyRepo, err := postgres.NewAPIKeyRepo(pgPool)
+	if err != nil {
+		return err
+	}
+
 	cacheRepo, err := redis.NewRedisCacheRepo(cfg)
 	if err != nil {
 		return err
 	}
 	slog.Info("redis connection establish")
 
-	handler := api.NewHTTPServer(cfg, cacheRepo, userRepo)
+	handler := api.NewHTTPServer(cfg, cacheRepo, userRepo, apiKeyRepo)
 
 	httpServer := http.Server{
 		Addr:    net.JoinHostPort(cfg.Server.Host, strconv.Itoa(cfg.Server.Port)),

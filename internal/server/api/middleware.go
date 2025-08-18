@@ -73,7 +73,6 @@ func authenticate(cfg *config.Config, next http.Handler) http.Handler {
 		var accessToken string
 
 		if r.Header.Get("Authorization") != "" {
-			slog.Info(r.Header.Get("Authorization"))
 			accessToken = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 		} else {
 			cookie, err := r.Cookie("jwt")
