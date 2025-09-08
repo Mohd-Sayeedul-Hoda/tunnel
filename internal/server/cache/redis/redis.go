@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 
 	"github.com/redis/go-redis/v9"
@@ -20,7 +19,7 @@ type redisRepo struct {
 	client *redis.Client
 }
 
-func NewRedisCacheRepo(cfg *config.Config) (cache.CacheRepo, error) {
+func NewRedisCacheRepo(cfg *config.Config) (*redisRepo, error) {
 	opts, err := redis.ParseURL(cfg.Cache.DSN)
 	if err != nil {
 		return nil, err

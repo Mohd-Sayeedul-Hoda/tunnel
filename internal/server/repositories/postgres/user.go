@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/sqlc"
 
 	"github.com/jackc/pgerrcode"
@@ -25,7 +24,7 @@ type userRepo struct {
 	queries sqlc.Querier
 }
 
-func NewUserRepo(pool *pgxpool.Pool) (repositories.UserRepo, error) {
+func NewUserRepo(pool *pgxpool.Pool) (*userRepo, error) {
 	if pool == nil {
 		return nil, errors.New("no pgx pool provided")
 	}

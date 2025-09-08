@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/sqlc"
 
 	"github.com/jackc/pgerrcode"
@@ -20,7 +19,7 @@ type apiKeyRepo struct {
 	queries sqlc.Querier
 }
 
-func NewAPIKeyRepo(pool *pgxpool.Pool) (repositories.APIRepo, error) {
+func NewAPIKeyRepo(pool *pgxpool.Pool) (*apiKeyRepo, error) {
 	if pool == nil {
 		return nil, errors.New("no pgx pool provided")
 	}
