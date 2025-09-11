@@ -20,6 +20,20 @@ type ApiKey struct {
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
+type OtpVerification struct {
+	ID            int32              `json:"id"`
+	Email         string             `json:"email"`
+	Otp           string             `json:"otp"`
+	Type          string             `json:"type"`
+	Attempts      int32              `json:"attempts"`
+	ResendCount   int32              `json:"resend_count"`
+	Used          pgtype.Bool        `json:"used"`
+	IsInvalidated pgtype.Bool        `json:"is_invalidated"`
+	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
 type User struct {
 	ID            int32              `json:"id"`
 	Email         string             `json:"email"`
