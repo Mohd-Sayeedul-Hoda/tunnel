@@ -60,10 +60,21 @@ func RecoverPanic(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func newAuthenticateMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
+func newAuthenticateAndVerifyMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return authenticate(cfg, next)
+		return authenticate(cfg, requireVerifiedUser(next))
 	}
+}
+
+func requireVerifiedUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := tools.ContextGetToken(r)
+		if !token.Verified {
+			handler.InactiveAccountResponse(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func authenticate(cfg *config.Config, next http.Handler) http.Handler {
@@ -73,7 +84,12 @@ func authenticate(cfg *config.Config, next http.Handler) http.Handler {
 		var accessToken string
 
 		if r.Header.Get("Authorization") != "" {
-			accessToken = strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+			headerParts := strings.Split(r.Header.Get("Authorization"), " ")
+			if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+				handler.InvalidCredentialsResponse(w, r)
+				return
+			}
+			accessToken = headerParts[1]
 		} else {
 			cookie, err := r.Cookie("jwt")
 			if err != nil {

@@ -1,14 +1,6 @@
 -- name: CreateOrUpdateOtp :exec
-INSERT INTO otp_verification (email, otp, type, expires_at, resend_count, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (email, type) DO UPDATE
-SET otp = EXCLUDED.otp,
-    expires_at = EXCLUDED.expires_at,
-    resend_count = otp_verification.resend_count + 1,
-    attempts = 0,
-    used = false,
-    is_invalidated = false,
-    updated_at = NOW();
+INSERT INTO otp_verification (email, otp, type, expires_at, updated_at)
+VALUES ($1, $2, $3, $4, $5);
 
 -- name: GetOtp :one
 SELECT * FROM otp_verification

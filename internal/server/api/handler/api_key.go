@@ -47,13 +47,7 @@ func CreateAPIKey(apiKeyRepo repositories.APIRepo) http.Handler {
 
 		err = apiKeyRepo.CreateAPIKey(&apikey)
 		if err != nil {
-			switch {
-			case errors.Is(err, postgres.ErrUniqueViolation):
-				v.AddError("name", "api key with same name exists")
-				failedValidationResponse(w, r, v)
-			default:
-				ServerErrorResponse(w, r, err)
-			}
+			ServerErrorResponse(w, r, err)
 			return
 		}
 

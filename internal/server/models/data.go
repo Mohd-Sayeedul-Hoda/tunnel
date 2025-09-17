@@ -25,3 +25,23 @@ type APIKey struct {
 	CreatedAt   time.Time `json:"created_at"`
 	Permissions []string  `json:"permission,omitempty"`
 }
+
+type OtpVerification struct {
+	Email         string    `json:"email"`
+	Otp           string    `json:"otp"`
+	Type          OtpType   `json:"type"`
+	ExpiresAt     time.Time `json:"expires_at"`
+	Attempts      int       `json:"-"`
+	ResendCount   int       `json:"resend_count"`
+	Used          bool      `json:"-"`
+	IsInvalidated bool
+	CreatedAt     time.Time `json:"created_at"`
+	UpdateAt      time.Time `json:"updated_at"`
+}
+
+type OtpType string
+
+var (
+	EmailVerification OtpType = "email-verification"
+	ForgotPassword    OtpType = "forget-password"
+)

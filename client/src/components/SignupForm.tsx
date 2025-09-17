@@ -33,6 +33,7 @@ export function SignupForm({
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validateForm = (data: SignupFormData) => {
@@ -57,7 +58,16 @@ export function SignupForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
+    // Mark all fields as touched
+    const allFields: (keyof SignupFormData)[] = ['name', 'email', 'password', 'confirmPassword']
+    const newTouchedFields = allFields.reduce((acc, field) => {
+      acc[field] = true
+      return acc
+    }, {} as Record<keyof SignupFormData, boolean>)
+
+    setTouchedFields(prev => ({ ...prev, ...newTouchedFields }))
+
     if (validateForm(formData)) {
       try {
         await onNext({
@@ -69,35 +79,37 @@ export function SignupForm({
         console.error('Signup error:', error)
       }
     }
-    
+
     setIsSubmitting(false)
   }
 
   const handleInputChange = (field: keyof SignupFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    
-    // Clear error when user starts typing
+
+    if (!touchedFields[field]) {
+      setTouchedFields(prev => ({ ...prev, [field]: true }))
+    }
+
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }))
     }
-    
-    // Real-time validation for better UX
-    const updatedData = { ...formData, [field]: value }
-    if (field === 'password' || field === 'confirmPassword') {
-      // Validate both password fields when either changes
-      validateForm(updatedData)
-    } else {
-      // For other fields, validate the specific field
-      try {
-        signupFormSchema.pick({ [field]: true }).parse({ [field]: value })
-        if (errors[field]) {
-          setErrors(prev => ({ ...prev, [field]: "" }))
-        }
-      } catch (error) {
-        if (error instanceof ZodError) {
-          const fieldError = error.issues.find(err => err.path[0] === field)
-          if (fieldError) {
-            setErrors(prev => ({ ...prev, [field]: fieldError.message }))
+
+    if (touchedFields[field] || isSubmitting) {
+      const updatedData = { ...formData, [field]: value }
+      if (field === 'password' || field === 'confirmPassword') {
+        validateForm(updatedData)
+      } else {
+        try {
+          signupFormSchema.pick({ [field]: true }).parse({ [field]: value })
+          if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: "" }))
+          }
+        } catch (error) {
+          if (error instanceof ZodError) {
+            const fieldError = error.issues.find(err => err.path[0] === field)
+            if (fieldError) {
+              setErrors(prev => ({ ...prev, [field]: fieldError.message }))
+            }
           }
         }
       }
@@ -126,13 +138,14 @@ export function SignupForm({
                   placeholder="John Doe"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
+                  onBlur={() => setTouchedFields(prev => ({ ...prev, name: true }))}
                   className={cn(
                     "transition-colors",
-                    errors.name && "border-red-500 focus-visible:ring-red-500"
+                    errors.name && (touchedFields.name || isSubmitting) && "border-red-500 focus-visible:ring-red-500"
                   )}
                   required
                 />
-                {errors.name && (
+                {errors.name && (touchedFields.name || isSubmitting) && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <span className="text-red-500">•</span>
                     {errors.name}
@@ -148,13 +161,14 @@ export function SignupForm({
                   placeholder="john@example.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
+                  onBlur={() => setTouchedFields(prev => ({ ...prev, email: true }))}
                   className={cn(
                     "transition-colors",
-                    errors.email && "border-red-500 focus-visible:ring-red-500"
+                    errors.email && (touchedFields.email || isSubmitting) && "border-red-500 focus-visible:ring-red-500"
                   )}
                   required
                 />
-                {errors.email && (
+                {errors.email && (touchedFields.email || isSubmitting) && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <span className="text-red-500">•</span>
                     {errors.email}
@@ -171,9 +185,10 @@ export function SignupForm({
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
+                    onBlur={() => setTouchedFields(prev => ({ ...prev, password: true }))}
                     className={cn(
                       "pr-10 transition-colors",
-                      errors.password && "border-red-500 focus-visible:ring-red-500"
+                      errors.password && (touchedFields.password || isSubmitting) && "border-red-500 focus-visible:ring-red-500"
                     )}
                     required
                   />
@@ -191,7 +206,7 @@ export function SignupForm({
                     )}
                   </Button>
                 </div>
-                {errors.password && (
+                {errors.password && (touchedFields.password || isSubmitting) && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <span className="text-red-500">•</span>
                     {errors.password}
@@ -213,9 +228,10 @@ export function SignupForm({
                     placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                    onBlur={() => setTouchedFields(prev => ({ ...prev, confirmPassword: true }))}
                     className={cn(
                       "pr-10 transition-colors",
-                      errors.confirmPassword && "border-red-500 focus-visible:ring-red-500"
+                      errors.confirmPassword && (touchedFields.confirmPassword || isSubmitting) && "border-red-500 focus-visible:ring-red-500"
                     )}
                     required
                   />
@@ -233,7 +249,7 @@ export function SignupForm({
                     )}
                   </Button>
                 </div>
-                {errors.confirmPassword && (
+                {errors.confirmPassword && (touchedFields.confirmPassword || isSubmitting) && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <span className="text-red-500">•</span>
                     {errors.confirmPassword}
@@ -242,8 +258,8 @@ export function SignupForm({
               </div>
 
               <div className="flex flex-col gap-3">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={isSubmitting}
                 >
