@@ -11,68 +11,51 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeftIcon } from "lucide-react";
+import { useFormValidation } from "@/hooks/useFormValidation";
 import { useState } from "react";
 import { loginSchema, type LoginFormData } from "@/lib/validations";
-import { ZodError } from "zod";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+interface LoginFormProps extends React.ComponentProps<"div"> {
+  onNext?: (data: LoginFormData) => void;
+  isLoading?: boolean;
+  error?: string | null;
+}
+
+export function LoginForm({ className, onNext }: LoginFormProps) {
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validateForm = (data: LoginFormData) => {
-    try {
-      loginSchema.parse(data);
-      setErrors({});
-      return true;
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const newErrors: Record<string, string> = {};
-        error.issues.forEach((err) => {
-          if (err.path[0]) {
-            newErrors[err.path[0] as string] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      }
-      return false;
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    if (validateForm(formData)) {
-      try {
-        // TODO: Replace with actual login API call
-        console.log("Login data:", formData);
-        // await loginAPI.login(formData)
-      } catch (error) {
-        console.error("Login error:", error);
-      }
-    }
-
-    setIsSubmitting(false);
-  };
+  const { errors, touched, handleFieldChange, handleFieldBlur, validateForm } =
+    useFormValidation({
+      schema: loginSchema,
+      validateOnBlur: true,
+      validateOnChange: false,
+    });
 
   const handleInputChange = (field: keyof LoginFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    handleFieldChange(field, value, newData);
+  };
 
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+  const handleBlur = (field: keyof LoginFormData) => {
+    handleFieldBlur(field, formData[field], formData);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const validation = validateForm(formData);
+    if (!validation.isValid) {
+      console.log("Validation failed, errors:", validation.errors);
+      return;
     }
+    console.log("Login data:", formData);
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6", className)}>
       <Card>
         <CardHeader>
           <div>
@@ -93,13 +76,14 @@ export function LoginForm({
                   placeholder="demo@demo.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
+                  onBlur={() => handleBlur("email")}
                   className={cn(
                     "transition-colors",
                     errors.email && "border-red-500 focus-visible:ring-red-500",
                   )}
                   required
                 />
-                {errors.email && (
+                {errors.email && touched["email"] && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <span className="text-red-500">•</span>
                     {errors.email}
@@ -123,6 +107,7 @@ export function LoginForm({
                   onChange={(e) =>
                     handleInputChange("password", e.target.value)
                   }
+                  onBlur={() => handleBlur("password")}
                   className={cn(
                     "transition-colors",
                     errors.password &&
@@ -138,12 +123,8 @@ export function LoginForm({
                 )}
               </div>
               <div className="flex flex-col gap-3">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Signing in..." : "Login"}
+                <Button type="submit" className="w-full">
+                  Login
                 </Button>
               </div>
             </div>

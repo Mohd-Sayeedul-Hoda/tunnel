@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 
 import { signupSchema, type SignupFormData } from "@/lib/validations";
-import { ZodError } from "zod";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -10,61 +9,18 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { Label } from "@radix-ui/react-label";
+import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { ArrowLeftIcon, EyeIcon, EyeOffIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useFormValidation } from "@/hooks/useFormValidation";
 
 interface SignupFormProps extends React.ComponentProps<"div"> {
   onNext?: (data: SignupFormData) => void;
   isLoading?: boolean;
   error?: string | null;
 }
-
-const useFormValidation = (schema: typeof signupSchema) => {
-  const validateField = useCallback(
-    (field: keyof SignupFormData, value: string, allData?: SignupFormData) => {
-      try {
-        if (field === "confirmPassword" && allData) {
-          schema.parse(allData);
-        } else {
-          schema.pick({ [field]: true }).parse({ [field]: value });
-          return null;
-        }
-      } catch (error) {
-        if (error instanceof ZodError) {
-          const fieldError = error.issues.find((err) => err.path[0] === field);
-          return fieldError?.message || null;
-        }
-        return null;
-      }
-    },
-    [schema],
-  );
-
-  const validateForm = useCallback(
-    (data: SignupFormData) => {
-      try {
-        schema.parse(data);
-        return { isValid: true, errors: {} };
-      } catch (error) {
-        if (error instanceof ZodError) {
-          const errors: Record<string, string> = {};
-          error.issues.forEach((err) => {
-            if (err.path[0]) {
-              errors[err.path[0] as string] = err.message;
-            }
-          });
-          return { isValid: false, errors };
-        }
-        return { isValid: false, errors: {} };
-      }
-    },
-    [schema],
-  );
-  return { validateField, validateForm };
-};
 
 export function SignupForm({ className, onNext }: SignupFormProps) {
   const [formData, setFormData] = useState<SignupFormData>({
@@ -76,40 +32,33 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
-    {},
-  );
 
-  const { validateField } = useFormValidation(signupSchema);
+  const { errors, touched, handleFieldChange, handleFieldBlur, validateForm } =
+    useFormValidation({
+      schema: signupSchema,
+      validateOnBlur: true,
+      validateOnChange: false,
+    });
 
   const handleInputChange = (field: keyof SignupFormData, value: string) => {
     const updateData = { ...formData, [field]: value };
     setFormData(updateData);
-
-    if (!touchedFields[field]) {
-      setTouchedFields((prev) => ({ ...prev, [field]: true }));
-    }
-
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
-
-    if (touchedFields[field]) {
-      const fieldError = validateField(field, value, updateData);
-      if (fieldError) {
-        setErrors((prev) => ({ ...prev, [field]: fieldError }));
-      }
-    }
+    handleFieldChange(field, formData[field], updateData);
   };
 
-  const handleFieldBlur = (field: keyof SignupFormData) => {
-    setTouchedFields((prev) => ({ ...prev, [field]: true }));
+  const handleBlur = (field: keyof SignupFormData) => {
+    handleFieldBlur(field, formData[field], formData);
+  };
 
-    const fieldError = validateField(field, formData[field], formData);
-    if (fieldError) {
-      setErrors((prev) => ({ ...prev, [field]: fieldError }));
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const validation = validateForm(formData);
+    if (!validation.isValid) {
+      console.log("Validation failed, errors:", validation.errors);
+      return;
     }
+    console.log("Signup data:", formData);
   };
 
   return (
@@ -122,7 +71,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={onSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="name">Full Name</Label>
@@ -132,16 +81,16 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
                   placeholder="Bruce Wayne"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  onBlur={() => handleFieldBlur("name")}
+                  onBlur={() => handleBlur("name")}
                   className={cn(
                     "transition-colors",
                     errors.name &&
-                    touchedFields.name &&
+                    touched.name &&
                     "border-red-500 focus-visible:ring-red-500",
                   )}
                   required
                 />
-                {errors.name && touchedFields.name && (
+                {errors.name && touched.name && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <span className="text-red-500">.</span>
                     {errors.name}
@@ -154,18 +103,19 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
                 <Input
                   id="email"
                   type="email"
+                  value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  onBlur={() => handleFieldBlur("email")}
+                  onBlur={() => handleBlur("email")}
                   placeholder="enterprise@wayne.com"
                   className={cn(
                     "transition-colors",
                     errors.email &&
-                    touchedFields.email &&
+                    touched.email &&
                     "border-red-500 focus-visible:ring-red-500",
                   )}
                   required
                 />
-                {errors.email && touchedFields.email && (
+                {errors.email && touched.email && (
                   <p className="flex items-center gap-1 text-sm text-red-500">
                     <span className="text-red-500">.</span>
                     {errors.email}
@@ -183,11 +133,11 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
                     onChange={(e) =>
                       handleInputChange("password", e.target.value)
                     }
-                    onBlur={() => handleFieldBlur("password")}
+                    onBlur={() => handleBlur("password")}
                     className={cn(
                       "pr-10 transition-colors",
                       errors.password &&
-                      touchedFields.password &&
+                      touched.password &&
                       "border-red-500 focus-visible:ring-red-500",
                     )}
                     required
@@ -206,7 +156,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
                     )}
                   </Button>
                 </div>
-                {errors.password && touchedFields.password && (
+                {errors.password && touched.password && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
                     <span className="text-red-500">.</span>
                     {errors.password}
@@ -222,7 +172,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm your password"
                     onBlur={() => {
-                      handleFieldBlur("confirmPassword");
+                      handleBlur("confirmPassword");
                     }}
                     onChange={(e) => {
                       handleInputChange("confirmPassword", e.target.value);
@@ -230,7 +180,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
                     className={cn(
                       "pr-10 transition-colors",
                       errors.confirmPassword &&
-                      touchedFields.confirmPassword &&
+                      touched.confirmPassword &&
                       "border-red-500 focus-visible:ring-red-500",
                     )}
                     required
