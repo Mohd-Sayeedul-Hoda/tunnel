@@ -319,7 +319,9 @@ func RefreshUserAccessToken(cfg *config.Config, cache cache.CacheRepo, userRepo 
 		tokenClaims, err := utils.ValidateToken(RefreshToken.Value, cfg.Token.RefreshTokenPublicKey)
 		if err != nil {
 			switch {
-			case errors.Is(err, utils.ErrTokenExpired), errors.Is(err, utils.ErrInvalidClaims):
+			case errors.Is(err, utils.ErrTokenExpired):
+				TokenExpireResponse(w, r)
+			case errors.Is(err, utils.ErrInvalidClaims):
 				NotPermittedResponse(w, r)
 			default:
 				ServerErrorResponse(w, r, err)

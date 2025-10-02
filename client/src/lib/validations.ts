@@ -24,15 +24,15 @@ export const signupSchema = z.object({
   confirmPassword: z
     .string()
     .min(1, "Please confirm your password")
-})
 
-export const signupFormSchema = signupSchema.refine(
+}).refine(
   (data) => data.password === data.confirmPassword,
   {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   }
 )
+
 
 export const loginSchema = z.object({
   email: z
@@ -51,7 +51,7 @@ export const otpSchema = z.object({
     .regex(/^\d{6}$/, "Verification code must contain only numbers")
 })
 
-export type SignupFormData = z.infer<typeof signupFormSchema>
+export type SignupFormData = z.infer<typeof signupSchema>
 export type LoginFormData = z.infer<typeof loginSchema>
 export type OtpFormData = z.infer<typeof otpSchema>
 

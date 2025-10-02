@@ -23,8 +23,8 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 
 	mux.Handle("POST /api/v1/auth/signup", handler.SignupUser(userRepo))
 	mux.Handle("POST /api/v1/auth/login", handler.AuthenticateUser(cfg, cacheRepo, userRepo))
-	mux.Handle("GET /api/v1/auth/refresh-token", handler.RefreshUserAccessToken(cfg, cacheRepo, userRepo))
-	mux.Handle("GET /api/v1/auth/logout", authenticate(cfg, handler.LogoutUser(cfg, cacheRepo, userRepo)))
+	mux.Handle("POST /api/v1/auth/refresh-token", handler.RefreshUserAccessToken(cfg, cacheRepo, userRepo))
+	mux.Handle("POST /api/v1/auth/logout", authenticate(cfg, handler.LogoutUser(cfg, cacheRepo, userRepo)))
 
 	mux.Handle("GET /api/v1/api-key", requireVerified(handler.ListAPIKey(apiKeyRepo)))
 	mux.Handle("POST /api/v1/api-key", requireVerified(handler.CreateAPIKey(apiKeyRepo)))

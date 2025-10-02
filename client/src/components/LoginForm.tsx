@@ -1,19 +1,19 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Link } from "@tanstack/react-router"
-import { ArrowLeftIcon } from "lucide-react"
-import { useState } from "react"
-import { loginSchema, type LoginFormData } from "@/lib/validations"
-import { ZodError } from "zod"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeftIcon } from "lucide-react";
+import { useState } from "react";
+import { loginSchema, type LoginFormData } from "@/lib/validations";
+import { ZodError } from "zod";
 
 export function LoginForm({
   className,
@@ -21,55 +21,55 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
-    password: ""
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+    password: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = (data: LoginFormData) => {
     try {
-      loginSchema.parse(data)
-      setErrors({})
-      return true
+      loginSchema.parse(data);
+      setErrors({});
+      return true;
     } catch (error) {
       if (error instanceof ZodError) {
-        const newErrors: Record<string, string> = {}
+        const newErrors: Record<string, string> = {};
         error.issues.forEach((err) => {
           if (err.path[0]) {
-            newErrors[err.path[0] as string] = err.message
+            newErrors[err.path[0] as string] = err.message;
           }
-        })
-        setErrors(newErrors)
+        });
+        setErrors(newErrors);
       }
-      return false
+      return false;
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    
+    e.preventDefault();
+    setIsSubmitting(true);
+
     if (validateForm(formData)) {
       try {
         // TODO: Replace with actual login API call
-        console.log('Login data:', formData)
+        console.log("Login data:", formData);
         // await loginAPI.login(formData)
       } catch (error) {
-        console.error('Login error:', error)
+        console.error("Login error:", error);
       }
     }
-    
-    setIsSubmitting(false)
-  }
+
+    setIsSubmitting(false);
+  };
 
   const handleInputChange = (field: keyof LoginFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -95,7 +95,7 @@ export function LoginForm({
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   className={cn(
                     "transition-colors",
-                    errors.email && "border-red-500 focus-visible:ring-red-500"
+                    errors.email && "border-red-500 focus-visible:ring-red-500",
                   )}
                   required
                 />
@@ -116,16 +116,19 @@ export function LoginForm({
                     Forgot password?
                   </Link>
                 </div>
-                <Input 
-                  id="password" 
-                  type="password" 
+                <Input
+                  id="password"
+                  type="password"
                   value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
                   className={cn(
                     "transition-colors",
-                    errors.password && "border-red-500 focus-visible:ring-red-500"
+                    errors.password &&
+                    "border-red-500 focus-visible:ring-red-500",
                   )}
-                  required 
+                  required
                 />
                 {errors.password && (
                   <p className="text-sm text-red-500 flex items-center gap-1">
@@ -135,8 +138,8 @@ export function LoginForm({
                 )}
               </div>
               <div className="flex flex-col gap-3">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={isSubmitting}
                 >
@@ -155,14 +158,11 @@ export function LoginForm({
       </Card>
 
       <div className="text-center">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to home
-        </Link>
+        <Button variant="link">
+          <ArrowLeftIcon className="w-4 h-4" />
+          <Link to="/">Back to home</Link>
+        </Button>
       </div>
     </div>
-  )
+  );
 }

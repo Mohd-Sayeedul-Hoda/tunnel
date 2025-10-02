@@ -4,11 +4,6 @@ import { useState } from 'react'
 
 export const Route = createFileRoute('/verify-email')({
   component: VerifyEmailComponent,
-  validateSearch: (search: Record<string, unknown>) => {
-    return {
-      email: (search.email as string) || '',
-    }
-  },
 })
 
 function VerifyEmailComponent() {
@@ -20,20 +15,20 @@ function VerifyEmailComponent() {
   const handleVerifyOtp = async (otp: string) => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await apiClient.verifyEmail({ email, otp })
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
+
       // TODO: Handle successful verification
       console.log('Email verified successfully')
-      
+
       // Redirect to login or dashboard
       navigate({ to: '/login' })
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed')
     } finally {
@@ -44,16 +39,16 @@ function VerifyEmailComponent() {
   const handleResendOtp = async () => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       // TODO: Replace with actual API call
       // await apiClient.resendVerificationEmail(email)
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 500))
-      
+
       console.log('Verification email resent to:', email)
-      
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resend email')
     } finally {
