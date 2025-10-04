@@ -7,12 +7,6 @@ interface UseFormValidationOptions<T> {
   validateOnChange?: boolean;
 }
 
-interface ValidationState<T> {
-  errors: Partial<Record<keyof T, string>>;
-  touched: Partial<Record<keyof T, boolean>>;
-  isValid: boolean;
-}
-
 export function useFormValidation<T extends Record<string, any>>({
   schema,
   validateOnBlur = true,
@@ -27,7 +21,8 @@ export function useFormValidation<T extends Record<string, any>>({
         if (allData) {
           schema.parse(allData);
         } else {
-          schema.pick({ [field]: true } as any).parse({ [field]: value });
+          const fieldData = { [field]: value } as T;
+          schema.parse(fieldData);
         }
         return null;
       } catch (error) {
@@ -124,3 +119,4 @@ export function useFormValidation<T extends Record<string, any>>({
     reset,
   };
 }
+

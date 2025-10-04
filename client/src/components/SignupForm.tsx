@@ -50,7 +50,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
     handleFieldBlur(field, formData[field], formData);
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const validation = validateForm(formData);
@@ -71,7 +71,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="name">Full Name</Label>
@@ -99,14 +99,14 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
               </div>
 
               <div className="grid gap-3">
-                <Label id="email">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   onBlur={() => handleBlur("email")}
-                  placeholder="enterprise@wayne.com"
+                  placeholder="demo@demo.com"
                   className={cn(
                     "transition-colors",
                     errors.email &&
@@ -124,7 +124,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
               </div>
 
               <div className="grid gap-3">
-                <Label id="password">Password</Label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -165,7 +165,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
               </div>
 
               <div className="grid gap-3">
-                <Label id="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -199,6 +199,12 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
                     )}
                   </Button>
                 </div>
+                {errors.confirmPassword && touched.confirmPassword && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <span className="text-red-500">.</span>
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-col gap-3">
@@ -208,9 +214,9 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
               </div>
               <div className="flex gap-1 justify-center items-center">
                 <p className="text-sm">Aleady have an account?</p>
-                <Link to="/login" className="text-sm underline">
-                  Sign In
-                </Link>
+                <Button asChild variant="link" className="p-0 h-auto text-sm">
+                  <Link to="/login">Sign In</Link>
+                </Button>
               </div>
             </div>
           </form>

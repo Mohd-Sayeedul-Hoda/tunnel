@@ -1,93 +1,119 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Link } from "@tanstack/react-router"
-import { ArrowLeftIcon, MailIcon, RefreshCwIcon } from "lucide-react"
-import { useState, useEffect } from "react"
-import { otpSchema } from "@/lib/validations"
-import { ZodError } from "zod"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeftIcon, MailIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  emailValidationSchema,
+  type EmailValidationData,
+} from "@/lib/validations";
+import { useFormValidation } from "@/hooks/useFormValidation";
 
 interface VerifyEmailFormProps extends React.ComponentProps<"div"> {
-  email: string
-  onVerify: (otp: string) => void
-  onResend: () => void
-  isLoading?: boolean
-  error?: string
+  email: string;
+  onVerify: (otp: string) => void;
+  onResend: () => void;
+  isLoading?: boolean;
+  error?: string;
 }
 
 export function VerifyEmailForm({
-  className,
   email,
-  onVerify,
-  onResend,
-  isLoading = false,
-  error,
+  className,
   ...props
 }: VerifyEmailFormProps) {
-  const [otp, setOtp] = useState("")
-  const [resendCooldown, setResendCooldown] = useState(0)
-  const [otpError, setOtpError] = useState("")
+  const [formData, setFormData] = useState<EmailValidationData>({
+    email: email || "",
+    otp: "",
+  });
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Resend cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => {
-        setResendCooldown(resendCooldown - 1)
-      }, 1000)
-      return () => clearTimeout(timer)
+        setResendCooldown(resendCooldown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [resendCooldown])
+  }, [resendCooldown]);
 
-  const handleOtpChange = (value: string) => {
-    // Only allow numbers and limit to 6 digits
-    const numericValue = value.replace(/\D/g, "").slice(0, 6)
-    setOtp(numericValue)
-    setOtpError("")
-  }
+  const isEmailProvided = email && email.trim() !== "";
 
-  const validateOtp = (otpValue: string) => {
-    try {
-      otpSchema.parse({ otp: otpValue })
-      setOtpError("")
-      return true
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const otpError = error.issues.find(err => err.path[0] === 'otp')
-        if (otpError) {
-          setOtpError(otpError.message)
-        }
-      }
-      return false
-    }
-  }
+  const { errors, touched, handleFieldChange, handleFieldBlur, validateForm } =
+    useFormValidation({
+      schema: emailValidationSchema,
+      validateOnChange: true,
+      validateOnBlur: true,
+    });
+
+  const handleInput = (field: keyof EmailValidationData, value: string) => {
+    const newData = { ...formData, [field]: value };
+    setFormData(newData);
+    handleFieldChange(field, value, newData);
+  };
+
+  const handleBlur = (field: keyof EmailValidationData) => {
+    handleFieldBlur(field, formData[field], formData);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (validateOtp(otp)) {
-      onVerify(otp)
+    e.preventDefault();
+
+    const validation = validateForm(formData);
+    if (!validation.isValid) {
+      console.log("Validation failed, errors:", validation.errors);
+      return;
     }
-  }
+    console.log("EmailVerification data:", formData);
+  };
 
   const handleResend = () => {
-    if (resendCooldown === 0) {
-      onResend()
-      setResendCooldown(60) // 60 seconds cooldown
-    }
-  }
+    console.log("resend the mail");
+  };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Auto-submit when 6 digits are entered
-    if (otp.length === 6 && e.key === "Enter") {
-      handleSubmit(e)
-    }
+  // Show error if email is not provided
+  if (!isEmailProvided) {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <Card>
+          <CardHeader>
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                <MailIcon className="h-6 w-6 text-red-500" />
+              </div>
+              <CardTitle className="text-red-600 dark:text-red-400">
+                Email Not Set
+              </CardTitle>
+              <CardDescription>
+                No email address provided for verification
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-4">
+                Please go back to the signup page and provide a valid email
+                address.
+              </p>
+              <Button variant="link" asChild>
+                <Link to="/signup">
+                  <ArrowLeftIcon className="w-4 h-4" /> Back to signup
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -109,43 +135,65 @@ export function VerifyEmailForm({
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="otp">Verification Code</Label>
+                <Label id="email">Email</Label>
                 <Input
-                  id="otp"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="000000"
-                  value={otp}
-                  onChange={(e) => handleOtpChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
+                  id="email"
+                  type="email"
+                  placeholder="demo@demo.com"
+                  value={formData.email}
+                  onChange={(e) => handleInput("email", e.target.value)}
+                  disabled
+                  onBlur={() => {
+                    handleBlur("email");
+                  }}
                   className={cn(
-                    "text-center text-2xl tracking-widest",
-                    (otpError || error) ? "border-red-500" : ""
+                    "transition-colors",
+                    errors.email &&
+                    touched.email &&
+                    "border-red-500 focus-visible:ring-red-500",
                   )}
-                  maxLength={6}
                   required
                 />
-                {(otpError || error) && (
-                  <p className="text-sm text-red-500 text-center">
-                    {otpError || error}
+                {errors.email ||
+                  (touched.email && (
+                    <p className="text-sm text-red-500 text-center">
+                      <span className="text-red-500">.</span>
+                      {errors.email}
+                    </p>
+                  ))}
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="otp">Otp</Label>
+                <Input
+                  id="otp"
+                  value={formData.otp}
+                  type="text"
+                  maxLength={6}
+                  placeholder="000000"
+                  onChange={(e) => {
+                    handleInput("otp", e.target.value);
+                  }}
+                  onBlur={() => handleBlur("otp")}
+                  className={cn(
+                    "transition-colors",
+                    errors.otp &&
+                    touched.otp &&
+                    "border-red-500 focus-visible:ring-red-500",
+                  )}
+                  required
+                />
+                {errors.otp && touched.otp && (
+                  <p className="text-sm text-red-500 flex items-center">
+                    <span className="text-red-500">.</span>
+                    {errors.otp}
                   </p>
                 )}
               </div>
 
               <div className="flex flex-col gap-3">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={otp.length !== 6 || isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCwIcon className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    "Verify Email"
-                  )}
+                <Button type="submit" className="w-full">
+                  Verify Email
                 </Button>
               </div>
 
@@ -156,14 +204,11 @@ export function VerifyEmailForm({
                     type="button"
                     variant="link"
                     className="p-0 h-auto text-sm"
-                    onClick={handleResend}
-                    disabled={resendCooldown > 0 || isLoading}
+                    onClick={() => handleResend()}
                   >
-                    {resendCooldown > 0 ? (
-                      `Resend in ${resendCooldown}s`
-                    ) : (
-                      "Resend code"
-                    )}
+                    {resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : "Resend code"}
                   </Button>
                 </p>
               </div>
@@ -173,14 +218,12 @@ export function VerifyEmailForm({
       </Card>
 
       <div className="text-center">
-        <Link
-          to="/signup"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to signup
-        </Link>
+        <Button variant="link" asChild>
+          <Link to="/signup">
+            <ArrowLeftIcon className="w-4 h-4" /> Back to signup
+          </Link>
+        </Button>
       </div>
     </div>
-  )
+  );
 }

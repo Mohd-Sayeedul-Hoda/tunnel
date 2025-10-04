@@ -43,19 +43,17 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export const otpSchema = z.object({
-  otp: z
-    .string()
-    .min(1, "Verification code is required")
-    .length(6, "Verification code must be 6 digits")
-    .regex(/^\d{6}$/, "Verification code must contain only numbers"),
-});
-
 export const emailSchema = z.object({
   email: z.email("please enter a valid email"),
 });
 
+export const emailValidationSchema = z.object({
+  email: z.email("Please enter a valid email"),
+  otp: z.string().min(1, "OTP is required").length(6, "OTP must be 6 digits"),
+  //   .regex(/^\d{6}$/, "OTP must contain only numbers"),
+});
+
 export type SignupFormData = z.infer<typeof signupSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
-export type OtpFormData = z.infer<typeof otpSchema>;
 export type EmailFormData = z.infer<typeof emailSchema>;
+export type EmailValidationData = z.infer<typeof emailValidationSchema>;

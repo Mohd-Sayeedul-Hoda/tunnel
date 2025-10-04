@@ -79,7 +79,9 @@ export function LoginForm({ className, onNext }: LoginFormProps) {
                   onBlur={() => handleBlur("email")}
                   className={cn(
                     "transition-colors",
-                    errors.email && "border-red-500 focus-visible:ring-red-500",
+                    errors.email &&
+                    touched.email &&
+                    "border-red-500 focus-visible:ring-red-500",
                   )}
                   required
                 />
@@ -128,20 +130,23 @@ export function LoginForm({ className, onNext }: LoginFormProps) {
                 </Button>
               </div>
             </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link to="/signup" className="underline underline-offset-4">
-                Sign up
-              </Link>
+            <div className="text-center mt-4">
+              <p className="text-sm text-muted-foreground">
+                Don&apos;t have an account?{" "}
+                <Button asChild variant="link" className="p-0 h-auto text-sm">
+                  <Link to="/signup">Sign up</Link>
+                </Button>
+              </p>
             </div>
           </form>
         </CardContent>
       </Card>
 
       <div className="text-center">
-        <Button variant="link">
-          <ArrowLeftIcon className="w-4 h-4" />
-          <Link to="/">Back to home</Link>
+        <Button variant="link" asChild>
+          <Link to="/">
+            <ArrowLeftIcon className="w-4 h-4" /> Back to home
+          </Link>
         </Button>
       </div>
     </div>

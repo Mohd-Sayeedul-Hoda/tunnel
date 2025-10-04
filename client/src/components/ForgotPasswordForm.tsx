@@ -42,7 +42,7 @@ export function ForgotPasswordForm({ className, onNext }: ForgotPasswordProps) {
     handleFieldBlur(field, formData[field], formData);
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const validation = validateForm(formData);
@@ -63,10 +63,10 @@ export function ForgotPasswordForm({ className, onNext }: ForgotPasswordProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
-                <Label id="email">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   placeholder="demo@demo.com"
