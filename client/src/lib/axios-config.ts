@@ -4,30 +4,18 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
-
-api.interceptors.request.use((config) => {
-  const isLoggedIn = getCookieValue('logged_in');
-  if (!isLoggedIn) {
-    // The server will handle authentication
-  }
-  return config;
 });
 
-const getCookieValue = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
-};
-
 let isRefreshing = false;
-let failedQueue: Array<{ resolve: (value: unknown) => void; reject: (reason?: unknown) => void }> = [];
+let failedQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
 
 const processQueue = (error: unknown, token: unknown = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -44,7 +32,8 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       const errorMessage = error.response?.data?.error;
-      const shouldRefresh = errorMessage === "token expired" ||
+      const shouldRefresh =
+        errorMessage === "token expired" ||
         errorMessage === "invalid token" ||
         errorMessage?.includes("token");
 
@@ -58,7 +47,7 @@ api.interceptors.response.use(
             resolve: () => {
               resolve(api(originalRequest));
             },
-            reject
+            reject,
           });
         });
       }
@@ -67,28 +56,33 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await api.post("/api/v1/auth/refresh-token", {}, {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        await api.post(
+          "/api/v1/auth/refresh-token",
+          {},
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
 
         // The server sets new cookies automatically, so we don't need to extract tokens
         // Just process the queue and retry the original request
         processQueue(null, null);
         return api(originalRequest);
-
       } catch (refreshError) {
         processQueue(refreshError);
 
-        // Clear all authentication cookies
-        document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = 'logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie =
+          "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie =
+          "logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie =
+          "refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
         // Redirect to login page
-        window.location.href = '/login';
+        window.location.href = "/login";
 
         return Promise.reject(refreshError);
       } finally {
@@ -97,7 +91,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

@@ -89,7 +89,9 @@ export const useAuthSignup = () => {
   return useMutation({
     mutationKey: ["auth", "signup"],
     mutationFn: async (data: SignupFormData) => {
-      const response = await api.post("/api/v1/auth/signup", data);
+      // Remove confirmPassword from the API request
+      const { confirmPassword, ...signupData } = data;
+      const response = await api.post("/api/v1/auth/signup", signupData);
       return response.data;
     },
   });

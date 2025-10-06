@@ -1,11 +1,11 @@
 package postgres
 
 import (
-	"context"
+	// "context"
 	"errors"
-	"time"
-
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
+	// "time"
+	//
+	// "github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/sqlc"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -24,14 +24,14 @@ func NewOtpVerificationRepo(pool *pgxpool.Pool) (*otpVerificationRepo, error) {
 	}, nil
 }
 
-func (o *otpVerificationRepo) CreateOrUpdateOtp(otp *models.OtpVerification) error {
-
-	if otp == nil {
-		panic("otp model cannot be nil")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer cancel()
-
-	err := o.queries.CreateOrUpdateOtp(ctx, sqlc.CreateOrUpdateOtpParams{})
-}
+// func (o *otpVerificationRepo) CreateOrUpdateOtp(otp *models.OtpVerification) error {
+//
+// 	if otp == nil {
+// 		panic("otp model cannot be nil")
+// 	}
+//
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+// 	defer cancel()
+//
+// 	err := o.queries.CreateOrUpdateOtp(ctx, sqlc.CreateOrUpdateOtpParams{})
+// }

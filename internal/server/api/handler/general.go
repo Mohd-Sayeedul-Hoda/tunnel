@@ -9,16 +9,12 @@ import (
 
 func HandleRoot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var data map[string]any
-		if r.URL.Path != "/" || r.Method != "GET" {
+		if r.Method != http.MethodGet && r.Method != http.MethodOptions {
 			errorResponse(w, r, http.StatusNotFound, "path not found")
 			return
 		}
 
-		data = envelope{
-			"message": "welcome to the tunnel nat traversal",
-		}
-		respondWithJSON(w, r, http.StatusOK, data)
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

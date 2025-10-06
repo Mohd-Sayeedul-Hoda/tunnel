@@ -17,12 +17,15 @@ import { Link } from "@tanstack/react-router";
 import { useFormValidation } from "@/hooks/useFormValidation";
 
 interface SignupFormProps extends React.ComponentProps<"div"> {
-  onNext?: (data: SignupFormData) => void;
+  onSubmit: (data: SignupFormData) => void;
   isLoading?: boolean;
-  error?: string | null;
 }
 
-export function SignupForm({ className, onNext }: SignupFormProps) {
+export function SignupForm({
+  className,
+  onSubmit,
+  isLoading = false,
+}: SignupFormProps) {
   const [formData, setFormData] = useState<SignupFormData>({
     name: "",
     email: "",
@@ -58,7 +61,7 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
       console.log("Validation failed, errors:", validation.errors);
       return;
     }
-    console.log("Signup data:", formData);
+    onSubmit(formData);
   };
 
   return (
@@ -208,8 +211,8 @@ export function SignupForm({ className, onNext }: SignupFormProps) {
               </div>
 
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Create Account
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
               </div>
               <div className="flex gap-1 justify-center items-center">

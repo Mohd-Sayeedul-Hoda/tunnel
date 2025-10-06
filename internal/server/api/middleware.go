@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -124,6 +125,40 @@ func adminOnly(next http.Handler) http.Handler {
 			handler.NotPermittedResponse(w, r)
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func CORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+
+		allowedOrigins := []string{
+			"http://localhost:3000",
+			"http://localhost:5173",
+			"http://localhost:4173",
+			"http://127.0.0.1:3000",
+			"http://127.0.0.1:5173",
+			"http://127.0.0.1:4173",
+		}
+
+		allowed := slices.Contains(allowedOrigins, origin) || origin == ""
+
+		if allowed {
+			if origin != "" {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+			}
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+			// Add CORS headers for all requests (including OPTIONS)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+			w.Header().Set("Access-Control-Max-Age", "86400")
+		} else if origin != "" {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

@@ -7,7 +7,7 @@ tmp_dir = "tmp"
   bin = "./tmp/main"
   full_bin = "APP_ENV=dev APP_USER=air ./tmp/main"
   include_ext = ["go", "tpl", "tmpl", "html"]
-  exclude_dir = ["assets", "tmp", "vendor", "testdata"]
+  exclude_dir = ["assets", "tmp", "vendor", "testdata", "client"]
   include_dir = []
   exclude_file = []
   log = "air.log"

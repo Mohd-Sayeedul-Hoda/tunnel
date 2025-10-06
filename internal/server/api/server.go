@@ -14,7 +14,7 @@ func NewHTTPServer(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo repos
 	AddRoute(mux, cfg, cacheRepo, userRepo, apiKeyRepo)
 
 	var handler http.Handler = mux
-	handler = RecoverPanic(NewLoggingMiddleware(handler))
+	handler = CORS(RecoverPanic(NewLoggingMiddleware(handler)))
 
 	return handler
 }
