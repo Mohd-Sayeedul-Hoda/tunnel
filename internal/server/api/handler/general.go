@@ -9,7 +9,7 @@ import (
 
 func HandleRoot() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet && r.Method != http.MethodOptions {
+		if r.URL.Path != "/" || r.Method != http.MethodGet {
 			errorResponse(w, r, http.StatusNotFound, "path not found")
 			return
 		}
