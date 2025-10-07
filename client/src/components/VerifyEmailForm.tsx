@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeftIcon, MailIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   emailValidationSchema,
   type EmailValidationData,
@@ -22,12 +22,19 @@ interface VerifyEmailFormProps extends React.ComponentProps<"div"> {
   email: string;
   onVerify: (otp: string) => void;
   onResend: () => void;
-  isLoading?: boolean;
+  isSendingEmail?: boolean;
+  isVerfyingEmail?: boolean;
+  resendCooldown: number;
   error?: string;
 }
 
 export function VerifyEmailForm({
+  onResend,
+  onVerify,
   email,
+  resendCooldown,
+  isSendingEmail,
+  isVerfyingEmail,
   className,
   ...props
 }: VerifyEmailFormProps) {
@@ -35,16 +42,6 @@ export function VerifyEmailForm({
     email: email || "",
     otp: "",
   });
-  const [resendCooldown, setResendCooldown] = useState(0);
-
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => {
-        setResendCooldown(resendCooldown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
 
   const isEmailProvided = email && email.trim() !== "";
 
@@ -73,14 +70,13 @@ export function VerifyEmailForm({
       console.log("Validation failed, errors:", validation.errors);
       return;
     }
-    console.log("EmailVerification data:", formData);
+    onVerify(formData.otp);
   };
 
   const handleResend = () => {
-    console.log("resend the mail");
+    onResend();
   };
 
-  // Show error if email is not provided
   if (!isEmailProvided) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -192,8 +188,12 @@ export function VerifyEmailForm({
               </div>
 
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Verify Email
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isVerfyingEmail}
+                >
+                  {isVerfyingEmail ? "Verifying email..." : "Verify Email"}
                 </Button>
               </div>
 
@@ -205,10 +205,13 @@ export function VerifyEmailForm({
                     variant="link"
                     className="p-0 h-auto text-sm"
                     onClick={() => handleResend()}
+                    disabled={isSendingEmail || resendCooldown > 0}
                   >
-                    {resendCooldown > 0
-                      ? `Resend in ${resendCooldown}s`
-                      : "Resend code"}
+                    {isSendingEmail && "Sending..."}
+                    {!isSendingEmail &&
+                      resendCooldown > 0 &&
+                      `Resending in ${resendCooldown}`}
+                    {!isSendingEmail && resendCooldown === 0 && "Resend Code"}
                   </Button>
                 </p>
               </div>

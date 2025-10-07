@@ -16,12 +16,12 @@ import { useState } from "react";
 import { loginSchema, type LoginFormData } from "@/lib/validations";
 
 interface LoginFormProps extends React.ComponentProps<"div"> {
-  onNext?: (data: LoginFormData) => void;
+  onNext: (data: LoginFormData) => void;
   isLoading?: boolean;
   error?: string | null;
 }
 
-export function LoginForm({ className, onNext }: LoginFormProps) {
+export function LoginForm({ className, onNext, isLoading }: LoginFormProps) {
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -51,7 +51,7 @@ export function LoginForm({ className, onNext }: LoginFormProps) {
       console.log("Validation failed, errors:", validation.errors);
       return;
     }
-    console.log("Login data:", formData);
+    onNext({ email: formData.email, password: formData.password });
   };
 
   return (
@@ -125,8 +125,8 @@ export function LoginForm({ className, onNext }: LoginFormProps) {
                 )}
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Login
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Logging in" : "Login"}
                 </Button>
               </div>
             </div>

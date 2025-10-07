@@ -89,9 +89,35 @@ export const useAuthSignup = () => {
   return useMutation({
     mutationKey: ["auth", "signup"],
     mutationFn: async (data: SignupFormData) => {
-      // Remove confirmPassword from the API request
       const { confirmPassword, ...signupData } = data;
       const response = await api.post("/api/v1/auth/signup", signupData);
+      return response.data;
+    },
+  });
+};
+
+export const useSendVerficationEmail = () => {
+  return useMutation({
+    mutationKey: ["email", "verfication", "send"],
+    mutationFn: async (data: { email: string }) => {
+      const response = await api.post("/api/v1/email-otp/send", {
+        email: data.email,
+        type: "email-verification",
+      });
+      return response.data;
+    },
+  });
+};
+
+export const useVerfiyEmailOtp = () => {
+  return useMutation({
+    mutationKey: ["email", "verification", "otp"],
+    mutationFn: async (data: { email: string; otp: string }) => {
+      const response = await api.post("/api/v1/email-otp/verify", {
+        email: data.email,
+        type: "email-verification",
+        otp: data.otp,
+      });
       return response.data;
     },
   });

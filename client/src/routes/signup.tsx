@@ -15,13 +15,13 @@ function SignupComponent() {
   const onSubmit = (formData: SignupFormData) => {
     mutation.mutate(formData, {
       onSuccess: () => {
+        toast.success(
+          "Account created successfully! Please verify your email.",
+        );
         navigate({
           to: "/verify-email",
           search: { email: formData.email },
         });
-        toast.success(
-          "Account created successfully! Please verify your email.",
-        );
       },
       onError: (error: any) => {
         if (error.response) {
