@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS otp_verification(
   otp TEXT NOT NULL,
   type TEXT NOT NULL CHECK (type IN('sign-in', 'email-verification', 'forget-password')),
   attempts INT NOT NULL DEFAULT 0,
-  resend_count INT NOT NULL DEFAULT 0,
   used BOOLEAN DEFAULT false,
   is_invalidated BOOLEAN DEFAULT false,
   expires_at TIMESTAMPTZ NOT NULL,
