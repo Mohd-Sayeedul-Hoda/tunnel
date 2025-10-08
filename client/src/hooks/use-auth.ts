@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@/types/api";
 import api from "@/lib/axios-config";
 import type { LoginFormData, SignupFormData } from "@/lib/validations";
+import { type } from "os";
+import { email } from "zod";
 
 const getCookieValue = (name: string): string | null => {
   const value = `; ${document.cookie}`;
@@ -98,7 +100,7 @@ export const useAuthSignup = () => {
 
 export const useSendVerficationEmail = () => {
   return useMutation({
-    mutationKey: ["email", "verfication", "send"],
+    mutationKey: ["email", "send", "verfication"],
     mutationFn: async (data: { email: string }) => {
       const response = await api.post("/api/v1/email-otp/send", {
         email: data.email,
@@ -111,12 +113,39 @@ export const useSendVerficationEmail = () => {
 
 export const useVerfiyEmailOtp = () => {
   return useMutation({
-    mutationKey: ["email", "verification", "otp"],
+    mutationKey: ["email", "otp", "email-verification"],
     mutationFn: async (data: { email: string; otp: string }) => {
       const response = await api.post("/api/v1/email-otp/verify", {
         email: data.email,
         type: "email-verification",
         otp: data.otp,
+      });
+      return response.data;
+    },
+  });
+};
+
+export const useSendForgotPasswordEmail = () => {
+  return useMutation({
+    mutationKey: ["email", "send", "forgot"],
+    mutationFn: async (email: string) => {
+      const response = await api.post("/api/v1/email-otp/send", {
+        email: email,
+        type: "forget-password",
+      });
+      return response.data;
+    },
+  });
+};
+
+export const useVerifyForgotPasswordOtp = () => {
+  return useMutation({
+    mutationKey: ["email", "otp", "forgot-password"],
+    mutationFn: async (data: { email: string; otp: string }) => {
+      const response = await api.post("/api/v1/email-otp/send", {
+        email: data.email,
+        otp: data.otp,
+        type: "forgot-password",
       });
       return response.data;
     },

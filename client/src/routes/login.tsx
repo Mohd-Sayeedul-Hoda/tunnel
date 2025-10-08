@@ -27,10 +27,18 @@ function LoginComponent() {
           const { status, data } = axiosError.response;
 
           if (status === 422) {
-            const errorMessages = Object.values(data.error) as string[];
-            errorMessages.forEach((errorMsg) => {
-              toast.error(errorMsg);
-            });
+            if (typeof data.error === 'object' && data.error !== null) {
+              Object.entries(data.error).forEach(([field, errorMsg]) => {
+                const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const message = Array.isArray(errorMsg) ? errorMsg[0] : errorMsg;
+                toast.error(`${fieldName}: ${message}`);
+              });
+            } else {
+              const errorMessages = Object.values(data.error) as string[];
+              errorMessages.forEach((errorMsg) => {
+                toast.error(errorMsg);
+              });
+            }
           } else {
             const errorMsg =
               typeof data.error === "string"
