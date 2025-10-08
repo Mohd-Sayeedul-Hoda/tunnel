@@ -2,8 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@/types/api";
 import api from "@/lib/axios-config";
 import type { LoginFormData, SignupFormData } from "@/lib/validations";
-import { type } from "os";
-import { email } from "zod";
 
 const getCookieValue = (name: string): string | null => {
   const value = `; ${document.cookie}`;
