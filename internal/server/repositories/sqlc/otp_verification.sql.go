@@ -11,43 +11,51 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createOrUpdateOtp = `-- name: CreateOrUpdateOtp :exec
-INSERT INTO otp_verification (email, otp, type, expires_at, resend_count, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (email, type) DO UPDATE
-SET otp = EXCLUDED.otp,
-    expires_at = EXCLUDED.expires_at,
-    resend_count = otp_verification.resend_count + 1,
-    attempts = 0,
-    used = false,
-    is_invalidated = false,
-    updated_at = NOW()
+const countOtpsAfterUtcTime = `-- name: CountOtpsAfterUtcTime :one
+SELECT COUNT(*) FROM otp_verification
+WHERE created_at > $1 AND email = $2 AND type = $3
 `
 
-type CreateOrUpdateOtpParams struct {
-	Email       string             `json:"email"`
-	Otp         string             `json:"otp"`
-	Type        string             `json:"type"`
-	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
-	ResendCount int32              `json:"resend_count"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+type CountOtpsAfterUtcTimeParams struct {
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Email     string             `json:"email"`
+	Type      string             `json:"type"`
 }
 
-func (q *Queries) CreateOrUpdateOtp(ctx context.Context, arg CreateOrUpdateOtpParams) error {
-	_, err := q.db.Exec(ctx, createOrUpdateOtp,
+func (q *Queries) CountOtpsAfterUtcTime(ctx context.Context, arg CountOtpsAfterUtcTimeParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countOtpsAfterUtcTime, arg.CreatedAt, arg.Email, arg.Type)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createOtp = `-- name: CreateOtp :exec
+INSERT INTO otp_verification (email, otp, type, expires_at)
+VALUES ($1, $2, $3, $4)
+`
+
+type CreateOtpParams struct {
+	Email     string             `json:"email"`
+	Otp       string             `json:"otp"`
+	Type      string             `json:"type"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+}
+
+func (q *Queries) CreateOtp(ctx context.Context, arg CreateOtpParams) error {
+	_, err := q.db.Exec(ctx, createOtp,
 		arg.Email,
 		arg.Otp,
 		arg.Type,
 		arg.ExpiresAt,
-		arg.ResendCount,
-		arg.UpdatedAt,
 	)
 	return err
 }
 
 const getOtp = `-- name: GetOtp :one
-SELECT id, email, otp, type, attempts, resend_count, used, is_invalidated, expires_at, created_at, updated_at FROM otp_verification
+SELECT id, email, otp, type, attempts, used, is_invalidated, expires_at, created_at, updated_at FROM otp_verification
 WHERE email = $1 AND type = $2
+ORDER BY created_at DESC 
+LIMIT 1
 `
 
 type GetOtpParams struct {
@@ -64,7 +72,6 @@ func (q *Queries) GetOtp(ctx context.Context, arg GetOtpParams) (OtpVerification
 		&i.Otp,
 		&i.Type,
 		&i.Attempts,
-		&i.ResendCount,
 		&i.Used,
 		&i.IsInvalidated,
 		&i.ExpiresAt,
@@ -74,20 +81,28 @@ func (q *Queries) GetOtp(ctx context.Context, arg GetOtpParams) (OtpVerification
 	return i, err
 }
 
+const increaseAttemptAndInvalidateOtp = `-- name: IncreaseAttemptAndInvalidateOtp :exec
+UPDATE otp_verification
+SET attempts = attempts + 1,
+is_invalidated = true,
+updated_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) IncreaseAttemptAndInvalidateOtp(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, increaseAttemptAndInvalidateOtp, id)
+	return err
+}
+
 const increaseOtpAttempt = `-- name: IncreaseOtpAttempt :exec
 UPDATE otp_verification
 SET attempts = attempts + 1,
     updated_at = NOW()
-WHERE email = $1 AND type = $2
+WHERE id = $1
 `
 
-type IncreaseOtpAttemptParams struct {
-	Email string `json:"email"`
-	Type  string `json:"type"`
-}
-
-func (q *Queries) IncreaseOtpAttempt(ctx context.Context, arg IncreaseOtpAttemptParams) error {
-	_, err := q.db.Exec(ctx, increaseOtpAttempt, arg.Email, arg.Type)
+func (q *Queries) IncreaseOtpAttempt(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, increaseOtpAttempt, id)
 	return err
 }
 
@@ -95,16 +110,11 @@ const invalidateOtp = `-- name: InvalidateOtp :exec
 UPDATE otp_verification
 SET is_invalidated = true,
     updated_at = NOW()
-WHERE email = $1 AND type = $2
+WHERE id = $1
 `
 
-type InvalidateOtpParams struct {
-	Email string `json:"email"`
-	Type  string `json:"type"`
-}
-
-func (q *Queries) InvalidateOtp(ctx context.Context, arg InvalidateOtpParams) error {
-	_, err := q.db.Exec(ctx, invalidateOtp, arg.Email, arg.Type)
+func (q *Queries) InvalidateOtp(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, invalidateOtp, id)
 	return err
 }
 
@@ -112,15 +122,10 @@ const verifyOtp = `-- name: VerifyOtp :exec
 UPDATE otp_verification
 SET used = true,
     updated_at = NOW()
-WHERE email = $1 AND type = $2
+WHERE id = $1
 `
 
-type VerifyOtpParams struct {
-	Email string `json:"email"`
-	Type  string `json:"type"`
-}
-
-func (q *Queries) VerifyOtp(ctx context.Context, arg VerifyOtpParams) error {
-	_, err := q.db.Exec(ctx, verifyOtp, arg.Email, arg.Type)
+func (q *Queries) VerifyOtp(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, verifyOtp, id)
 	return err
 }

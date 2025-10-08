@@ -9,23 +9,25 @@ import (
 )
 
 type Querier interface {
+	CountOtpsAfterUtcTime(ctx context.Context, arg CountOtpsAfterUtcTimeParams) (int64, error)
 	CreateAPIKey(ctx context.Context, arg CreateAPIKeyParams) (CreateAPIKeyRow, error)
-	CreateOrUpdateOtp(ctx context.Context, arg CreateOrUpdateOtpParams) error
+	CreateOtp(ctx context.Context, arg CreateOtpParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteAPIKey(ctx context.Context, arg DeleteAPIKeyParams) (int64, error)
 	DeleteUser(ctx context.Context, id int32) (int64, error)
 	GetOtp(ctx context.Context, arg GetOtpParams) (OtpVerification, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id int32) (User, error)
-	IncreaseOtpAttempt(ctx context.Context, arg IncreaseOtpAttemptParams) error
-	InvalidateOtp(ctx context.Context, arg InvalidateOtpParams) error
+	IncreaseAttemptAndInvalidateOtp(ctx context.Context, id int32) error
+	IncreaseOtpAttempt(ctx context.Context, id int32) error
+	InvalidateOtp(ctx context.Context, id int32) error
 	ListAPIKeys(ctx context.Context, arg ListAPIKeysParams) ([]ListAPIKeysRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error)
 	UpdateUserFull(ctx context.Context, arg UpdateUserFullParams) (User, error)
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (User, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
-	VerifyOtp(ctx context.Context, arg VerifyOtpParams) error
+	VerifyOtp(ctx context.Context, id int32) error
 }
 
 var _ Querier = (*Queries)(nil)

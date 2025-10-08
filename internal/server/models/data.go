@@ -27,16 +27,16 @@ type APIKey struct {
 }
 
 type OtpVerification struct {
+	Id            int       `json:"id"`
 	Email         string    `json:"email"`
 	Otp           string    `json:"otp"`
 	Type          OtpType   `json:"type"`
 	ExpiresAt     time.Time `json:"expires_at"`
 	Attempts      int       `json:"-"`
-	ResendCount   int       `json:"resend_count"`
 	Used          bool      `json:"-"`
-	IsInvalidated bool
+	IsInvalidated bool      `json:"-"`
 	CreatedAt     time.Time `json:"created_at"`
-	UpdateAt      time.Time `json:"updated_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type OtpType string

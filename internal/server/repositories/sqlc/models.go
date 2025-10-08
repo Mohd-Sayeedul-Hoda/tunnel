@@ -26,7 +26,6 @@ type OtpVerification struct {
 	Otp           string             `json:"otp"`
 	Type          string             `json:"type"`
 	Attempts      int32              `json:"attempts"`
-	ResendCount   int32              `json:"resend_count"`
 	Used          pgtype.Bool        `json:"used"`
 	IsInvalidated pgtype.Bool        `json:"is_invalidated"`
 	ExpiresAt     pgtype.Timestamptz `json:"expires_at"`
