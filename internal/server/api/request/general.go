@@ -21,3 +21,11 @@ func ValidName(v *Valid, name string) {
 	v.Check(name != "", "name", "name should not be empty string")
 	v.Check(len(name) <= 300, "name", "name should be less then 300 character")
 }
+
+func ValidOtpType(v *Valid, otpType string) {
+	validTypes := map[string]bool{
+		"email-verification": true,
+		"forget-password":    true,
+	}
+	v.Check(validTypes[otpType], "type", "invalid OTP type. Valid types are: email-verification, forget-password")
+}

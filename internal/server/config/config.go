@@ -33,9 +33,13 @@ type Config struct {
 		RefreshTokenExpiredIn  time.Duration
 		RefreshTokenMaxAge     uint
 	}
-	AppVersion int    // app version like 1
-	AppEnv     string //  prod|dev|debug
-	Debug      bool   // run code in debug mode mostly debug log will be displayed
+	AppVersion             int           // app version like 1
+	AppEnv                 string        //  prod|dev|debug
+	Debug                  bool          // run code in debug mode mostly debug log will be displayed
+	TotalAllowEmailForType int           // number of email allow for type in a day
+	EmailOtpLenght         int           // lenght of email otp
+	EmailOtpExpiredIn      time.Duration // after how much time email expired token get expired
+	EmailOtpSalt           string
 }
 
 func (c *Config) validate() error {
@@ -57,6 +61,10 @@ func (c *Config) validate() error {
 	if c.Token.RefreshTokenPrivateKey == "" {
 		return errors.New("REFRESH_TOKEN_PRIVATE_KEY is not set")
 	}
+	if c.EmailOtpSalt == "" {
+		return errors.New("EMAIL_OTP_SALT is not set")
+	}
+
 	return nil
 }
 
@@ -99,6 +107,16 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 
 	cfg.Token.AccessTokenExpiredIn = accessTokenExpireIn
 	cfg.Token.RefreshTokenExpiredIn = refreshTokenExpireIn
+
+	cfg.TotalAllowEmailForType = getEnvInt(getenv, "TOTAL_ALLOW_EMAIL_FOR_TYPE", 3)
+	cfg.EmailOtpLenght = getEnvInt(getenv, "EMAIL_OTP_LENGHT", 6)
+	cfg.EmailOtpSalt = getEnvString(getenv, "EMAIL_OTP_SALT", "")
+	emailOtpExpiredIn := getEnvString(getenv, "EMAIL_OTP_EXPIRED_IN", "15m")
+
+	cfg.EmailOtpExpiredIn, err = time.ParseDuration(emailOtpExpiredIn)
+	if err != nil {
+		return nil, fmt.Errorf("invalid email otp expiration duration: %w", err)
+	}
 
 	flag.BoolVar(&cfg.Debug, "debug", false, "Debug mode")
 

@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 	"time"
 
@@ -150,4 +151,21 @@ func GenerateAPIKeyToken(n int) (*APIKeyDetails, error) {
 		FullKey: fullKey,
 		KeyHash: hex.EncodeToString(hash[:]),
 	}, nil
+}
+
+func GenerateEmailOtpToken(n int) string {
+	const digits = "0123456789"
+	otp := make([]byte, n)
+
+	for i := range otp {
+		num, _ := rand.Int(rand.Reader, big.NewInt(int64(len(digits))))
+		otp[i] = digits[num.Int64()]
+	}
+
+	return string(otp)
+}
+
+func HashOtp(salt string, otp string) string {
+	combine := salt + otp
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(combine)))
 }

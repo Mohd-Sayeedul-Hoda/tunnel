@@ -20,7 +20,7 @@ type APIRepo interface {
 	DeleteAPIKey(userId, keyId int) error
 }
 
-type OtpVerificationRepo interface {
+type EmailOtpRepo interface {
 	CreateOtp(email, otp string, typeOfOtp models.OtpType, expiersAt time.Time) error
 	GetOtp(email string, otpType models.OtpType) (*models.OtpVerification, error)
 	VerifyOtp(id int) error

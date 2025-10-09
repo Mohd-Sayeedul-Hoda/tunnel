@@ -17,7 +17,7 @@ type otpVerificationRepo struct {
 	queries sqlc.Querier
 }
 
-func NewOtpVerificationRepo(pool *pgxpool.Pool) (*otpVerificationRepo, error) {
+func NewEmailOtpRepo(pool *pgxpool.Pool) (*otpVerificationRepo, error) {
 	if pool == nil {
 		return nil, errors.New("no pgx pool provided")
 	}
@@ -28,7 +28,6 @@ func NewOtpVerificationRepo(pool *pgxpool.Pool) (*otpVerificationRepo, error) {
 }
 
 func (o *otpVerificationRepo) CreateOtp(email, otp string, typeOfOtp models.OtpType, expiersAt time.Time) error {
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
@@ -37,11 +36,12 @@ func (o *otpVerificationRepo) CreateOtp(email, otp string, typeOfOtp models.OtpT
 		Otp:   otp,
 		Type:  string(typeOfOtp),
 		ExpiresAt: pgtype.Timestamptz{
-			Time: expiersAt,
+			Time:  expiersAt,
+			Valid: true,
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to create otp: %w", err)
+		return fmt.Errorf("failed to create email otp: %w", err)
 	}
 
 	return nil
@@ -66,7 +66,7 @@ func (o *otpVerificationRepo) GetOtp(email string, otpType models.OtpType) (*mod
 	return &models.OtpVerification{
 		Id:            int(otpModel.ID),
 		Email:         otpModel.Email,
-		Otp:           otpModel.Otp,
+		EmailOtp:      otpModel.Otp,
 		Type:          models.OtpType(otpModel.Type),
 		ExpiresAt:     otpModel.ExpiresAt.Time,
 		Attempts:      int(otpModel.Attempts),

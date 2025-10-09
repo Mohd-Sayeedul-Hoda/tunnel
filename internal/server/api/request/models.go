@@ -2,6 +2,7 @@ package request
 
 import (
 	"context"
+	"strings"
 	"time"
 )
 
@@ -45,4 +46,31 @@ func (u *APIKeys) Valid(ctx context.Context, v *Valid) *Valid {
 	}
 
 	return v
+}
+
+type SendOtp struct {
+	Email   string `json:"email"`
+	OtpType string `json:"type"`
+}
+
+type VerfyOtp struct {
+	Email    string `json:"email"`
+	OtpType  string `json:"type"`
+	EmailOtp string `json:"email-otp"`
+}
+
+func (u *SendOtp) Valid(ctx context.Context, v *Valid) *Valid {
+	ValidEmail(v, u.Email)
+	ValidOtpType(v, u.OtpType)
+	return v
+}
+
+func (u *VerfyOtp) Valid(ctx context.Context, v *Valid) *Valid {
+
+	ValidEmail(v, u.Email)
+	ValidOtpType(v, u.OtpType)
+	v.Check(strings.TrimSpace(u.EmailOtp) != "", "email-otp", "otp should not be empty")
+
+	return v
+
 }

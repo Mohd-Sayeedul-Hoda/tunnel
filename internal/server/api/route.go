@@ -9,7 +9,7 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 )
 
-func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo, userRepo repositories.UserRepo, apiKeyRepo repositories.APIRepo) {
+func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo, userRepo repositories.UserRepo, apiKeyRepo repositories.APIRepo, emailOtpRepo repositories.EmailOtpRepo) {
 
 	// general
 	mux.HandleFunc("/", handler.HandleRoot())
@@ -29,5 +29,8 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 	mux.Handle("GET /api/v1/api-key", requireVerified(handler.ListAPIKey(apiKeyRepo)))
 	mux.Handle("POST /api/v1/api-key", requireVerified(handler.CreateAPIKey(apiKeyRepo)))
 	mux.Handle("DELETE /api/v1/api-key/{id}", requireVerified(handler.DeleteAPIKey(apiKeyRepo)))
+
+	mux.Handle("POST /api/v1/email-otp/send", handler.SendEmailOtp(cfg, userRepo, emailOtpRepo))
+	mux.Handle("POST /api/v1/email-otp/verify", handler.VerifyEmailOtp(cfg, userRepo, emailOtpRepo))
 
 }

@@ -72,3 +72,8 @@ func InactiveAccountResponse(w http.ResponseWriter, r *http.Request) {
 	message := "your user account must be activated to access this resource"
 	errorResponse(w, r, http.StatusForbidden, message)
 }
+
+func tooManyResponse(w http.ResponseWriter, r *http.Request) {
+	message := "rate limit exceeded"
+	errorResponse(w, r, http.StatusTooManyRequests, message)
+}

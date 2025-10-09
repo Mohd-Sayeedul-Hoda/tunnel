@@ -29,7 +29,7 @@ type APIKey struct {
 type OtpVerification struct {
 	Id            int       `json:"id"`
 	Email         string    `json:"email"`
-	Otp           string    `json:"otp"`
+	EmailOtp      string    `json:"email-otp"`
 	Type          OtpType   `json:"type"`
 	ExpiresAt     time.Time `json:"expires_at"`
 	Attempts      int       `json:"-"`
@@ -42,6 +42,6 @@ type OtpVerification struct {
 type OtpType string
 
 var (
-	EmailVerification OtpType = "email-verification"
-	ForgotPassword    OtpType = "forget-password"
+	EmailVerificationOtpType OtpType = "email-verification"
+	ForgotPasswordOtpType    OtpType = "forget-password"
 )
