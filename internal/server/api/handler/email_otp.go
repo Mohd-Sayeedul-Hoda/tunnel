@@ -24,7 +24,7 @@ func SendEmailOtp(cfg *config.Config, userRepo repositories.UserRepo, emailOtpRe
 		err := encoding.Validated(w, r, v, &req)
 		if err != nil {
 			switch {
-			case errors.Is(err, encoding.ErrInvalidData):
+			case errors.Is(err, encoding.ErrInvalidRequest):
 				badRequestResponse(w, r, err)
 			case !v.Valid():
 				failedValidationResponse(w, r, v)
@@ -91,10 +91,10 @@ func VerifyEmailOtp(cfg *config.Config, userRepo repositories.UserRepo, emailRep
 		err := encoding.Validated(w, r, v, &req)
 		if err != nil {
 			switch {
-			case errors.Is(err, encoding.ErrInvalidData):
-				badRequestResponse(w, r, err)
 			case !v.Valid():
 				failedValidationResponse(w, r, v)
+			case errors.Is(err, encoding.ErrInvalidRequest):
+				badRequestResponse(w, r, err)
 			default:
 				ServerErrorResponse(w, r, err)
 			}

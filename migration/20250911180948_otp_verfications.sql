@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS otp_verification(
   is_invalidated BOOLEAN DEFAULT false,
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(email, type)
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_otp_verifications_email

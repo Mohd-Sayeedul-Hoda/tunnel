@@ -23,7 +23,7 @@ func CreateAPIKey(apiKeyRepo repositories.APIRepo) http.Handler {
 			switch {
 			case !v.Valid():
 				failedValidationResponse(w, r, v)
-			case errors.Is(err, encoding.ErrInvalidData):
+			case errors.Is(err, encoding.ErrInvalidRequest):
 				badRequestResponse(w, r, err)
 			default:
 				ServerErrorResponse(w, r, err)
