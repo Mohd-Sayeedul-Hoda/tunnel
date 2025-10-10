@@ -46,3 +46,8 @@ SET email = $2, name = $3, password_hash = $4, email_verified = $5, updated_at =
 WHERE id = $1
 RETURNING id, email, name, password_hash, email_verified, created_at, updated_at;
 
+
+-- name: VerifyUserEmail :exec
+UPDATE users
+SET email_verified = true
+WHERE id = $1;

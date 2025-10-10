@@ -46,7 +46,7 @@ func SendEmailOtp(cfg *config.Config, userRepo repositories.UserRepo, emailOtpRe
 		}
 
 		if user.EmailVerified {
-			errorResponse(w, r, http.StatusBadRequest, "email already verfied")
+			errorResponse(w, r, http.StatusBadRequest, "email already verified")
 			return
 		}
 
@@ -87,7 +87,7 @@ func VerifyEmailOtp(cfg *config.Config, userRepo repositories.UserRepo, emailRep
 
 		v := request.NewValidator()
 
-		var req request.VerfyOtp
+		var req request.VerifyOtp
 		err := encoding.Validated(w, r, v, &req)
 		if err != nil {
 			switch {
@@ -113,7 +113,7 @@ func VerifyEmailOtp(cfg *config.Config, userRepo repositories.UserRepo, emailRep
 		}
 
 		if user.EmailVerified {
-			errorResponse(w, r, http.StatusBadRequest, "email already verfied")
+			errorResponse(w, r, http.StatusBadRequest, "email already verified")
 			return
 		}
 
@@ -157,7 +157,16 @@ func VerifyEmailOtp(cfg *config.Config, userRepo repositories.UserRepo, emailRep
 			ServerErrorResponse(w, r, err)
 			return
 		}
-		//WARN: add user verfication queries and add it here
+		err = userRepo.VerifyUserEmail(user.Id)
+		if err != nil {
+			switch {
+			case errors.Is(err, postgres.ErrNotFound):
+				notFoundResponse(w, r)
+			default:
+				ServerErrorResponse(w, r, err)
+			}
+			return
+		}
 
 		respondWithJSON(w, r, http.StatusOK, envelope{
 			"status": "success",

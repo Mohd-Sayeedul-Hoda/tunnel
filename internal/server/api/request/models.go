@@ -53,7 +53,7 @@ type SendOtp struct {
 	OtpType string `json:"type"`
 }
 
-type VerfyOtp struct {
+type VerifyOtp struct {
 	Email    string `json:"email"`
 	OtpType  string `json:"type"`
 	EmailOtp string `json:"email-otp"`
@@ -65,7 +65,7 @@ func (u *SendOtp) Valid(ctx context.Context, v *Valid) *Valid {
 	return v
 }
 
-func (u *VerfyOtp) Valid(ctx context.Context, v *Valid) *Valid {
+func (u *VerifyOtp) Valid(ctx context.Context, v *Valid) *Valid {
 
 	ValidEmail(v, u.Email)
 	ValidOtpType(v, u.OtpType)

@@ -155,3 +155,19 @@ func (u *userRepo) ListUsers(limit, offset int) ([]models.User, error) {
 	return users, nil
 
 }
+
+func (u *userRepo) VerifyUserEmail(id int) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := u.queries.VerifyUserEmail(ctx, int32(id))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrNotFound
+		}
+		return fmt.Errorf("failed to get user by id: %w", err)
+	}
+
+	return nil
+}

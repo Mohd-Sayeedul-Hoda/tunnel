@@ -12,6 +12,7 @@ type UserRepo interface {
 	GetByEmail(email string) (*models.User, error)
 	Create(user *models.User) error
 	Delete(userId int) error
+	VerifyUserEmail(id int) error
 }
 
 type APIRepo interface {
