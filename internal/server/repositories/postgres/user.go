@@ -171,3 +171,14 @@ func (u *userRepo) VerifyUserEmail(id int) error {
 
 	return nil
 }
+
+func (u *userRepo) UpdateUserPassword(email string, passwdHash []byte) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return u.queries.UpdateUserPassword(ctx, sqlc.UpdateUserPasswordParams{
+		Email:        email,
+		PasswordHash: passwdHash,
+	})
+}

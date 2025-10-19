@@ -17,9 +17,13 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 
 	// users
 	requireVerified := newAuthenticateAndVerifyMiddleware(cfg)
-	mux.Handle("GET /api/v1/users", requireVerified(adminOnly(handler.ListUsers(userRepo))))
 	mux.Handle("GET /api/v1/users/me", requireVerified(handler.GetUsers(userRepo)))
 	mux.Handle("DELETE /api/v1/users/{id}", requireVerified(adminOnly(handler.DeleteUser(userRepo))))
+	mux.Handle("GET /api/v1/users", requireVerified(adminOnly(handler.ListUsers(userRepo))))
+	mux.Handle("POST /api/v1/users/email/send-verfication", handler.SendEmailVerficationOtp(cfg, userRepo, emailOtpRepo))
+	mux.Handle("POST /api/v1/users/email/verify-verfication", handler.VerifyEmailVerficationOtp(cfg, userRepo, emailOtpRepo))
+	mux.Handle("POST /api/v1/users/passsword/forgot/send-otp", handler.SendForgotPasswordLink(cfg, userRepo, emailOtpRepo))
+	mux.Handle("POST /api/v1/users/password/forgot/verify-otp", handler.VerifyForgotPasswordLink(cfg, userRepo, emailOtpRepo))
 
 	mux.Handle("POST /api/v1/auth/signup", handler.SignupUser(userRepo))
 	mux.Handle("POST /api/v1/auth/login", handler.AuthenticateUser(cfg, cacheRepo, userRepo))
@@ -29,8 +33,5 @@ func AddRoute(mux *http.ServeMux, cfg *config.Config, cacheRepo cache.CacheRepo,
 	mux.Handle("GET /api/v1/api-key", requireVerified(handler.ListAPIKey(apiKeyRepo)))
 	mux.Handle("POST /api/v1/api-key", requireVerified(handler.CreateAPIKey(apiKeyRepo)))
 	mux.Handle("DELETE /api/v1/api-key/{id}", requireVerified(handler.DeleteAPIKey(apiKeyRepo)))
-
-	mux.Handle("POST /api/v1/email-otp/send", handler.SendEmailOtp(cfg, userRepo, emailOtpRepo))
-	mux.Handle("POST /api/v1/email-otp/verify", handler.VerifyEmailOtp(cfg, userRepo, emailOtpRepo))
 
 }

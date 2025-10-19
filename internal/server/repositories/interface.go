@@ -13,6 +13,7 @@ type UserRepo interface {
 	Create(user *models.User) error
 	Delete(userId int) error
 	VerifyUserEmail(id int) error
+	UpdateUserPassword(email string, passwdHash []byte) error
 }
 
 type APIRepo interface {

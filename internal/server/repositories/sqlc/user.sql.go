@@ -219,31 +219,20 @@ func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) 
 	return i, err
 }
 
-const updateUserPassword = `-- name: UpdateUserPassword :one
+const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
 SET password_hash = $2, updated_at = NOW()
-WHERE id = $1
-RETURNING id, email, name, password_hash, email_verified, created_at, updated_at
+WHERE email = $1
 `
 
 type UpdateUserPasswordParams struct {
-	ID           int32  `json:"id"`
+	Email        string `json:"email"`
 	PasswordHash []byte `json:"password_hash"`
 }
 
-func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.Name,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.Email, arg.PasswordHash)
+	return err
 }
 
 const verifyUserEmail = `-- name: VerifyUserEmail :exec

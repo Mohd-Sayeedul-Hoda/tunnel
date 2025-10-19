@@ -84,7 +84,7 @@ func SignupUser(userRepo repositories.UserRepo) http.HandlerFunc {
 		err := encoding.Validated(w, r, v, &user)
 		if err != nil {
 			switch {
-			case !v.Valid():
+			case errors.Is(err, encoding.ErrInvalidData):
 				failedValidationResponse(w, r, v)
 			case errors.Is(err, encoding.ErrInvalidRequest):
 				badRequestResponse(w, r, err)
@@ -159,7 +159,7 @@ func AuthenticateUser(cfg *config.Config, cacheRepo cache.CacheRepo, userRepo re
 		err := encoding.Validated(w, r, v, &req)
 		if err != nil {
 			switch {
-			case !v.Valid():
+			case errors.Is(err, encoding.ErrInvalidData):
 				failedValidationResponse(w, r, v)
 			case errors.Is(err, encoding.ErrInvalidRequest):
 				badRequestResponse(w, r, err)

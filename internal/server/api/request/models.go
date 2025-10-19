@@ -48,29 +48,36 @@ func (u *APIKeys) Valid(ctx context.Context, v *Valid) *Valid {
 	return v
 }
 
-type SendOtp struct {
-	Email   string `json:"email"`
-	OtpType string `json:"type"`
+type BaseEmail struct {
+	Email string `json:"email"`
 }
 
-type VerifyOtp struct {
+type VerifyUserOTP struct {
 	Email    string `json:"email"`
-	OtpType  string `json:"type"`
 	EmailOtp string `json:"otp"`
 }
 
-func (u *SendOtp) Valid(ctx context.Context, v *Valid) *Valid {
+type ForgotPasswordVerify struct {
+	EmailOtp string `json:"otp"`
+	Password string `json:"password"`
+}
+
+func (u *BaseEmail) Valid(ctx context.Context, v *Valid) *Valid {
 	ValidEmail(v, u.Email)
-	ValidOtpType(v, u.OtpType)
 	return v
 }
 
-func (u *VerifyOtp) Valid(ctx context.Context, v *Valid) *Valid {
+func (u *VerifyUserOTP) Valid(ctx context.Context, v *Valid) *Valid {
 
 	ValidEmail(v, u.Email)
-	ValidOtpType(v, u.OtpType)
 	v.Check(strings.TrimSpace(u.EmailOtp) != "", "email-otp", "otp should not be empty")
 
 	return v
+}
 
+func (u *ForgotPasswordVerify) Valid(ctx context.Context, v *Valid) *Valid {
+
+	v.Check(strings.TrimSpace(u.EmailOtp) != "", "email-otp", "otp should not be empty")
+	ValidPassword(v, u.Password)
+	return v
 }

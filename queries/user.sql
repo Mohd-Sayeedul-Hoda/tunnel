@@ -28,11 +28,10 @@ SET email = $2, updated_at = NOW()
 WHERE id = $1
 RETURNING id, email, name, password_hash, email_verified, created_at, updated_at;
 
--- name: UpdateUserPassword :one
+-- name: UpdateUserPassword :exec
 UPDATE users
 SET password_hash = $2, updated_at = NOW()
-WHERE id = $1
-RETURNING id, email, name, password_hash, email_verified, created_at, updated_at;
+WHERE email = $1;
 
 -- name: UpdateUserName :one
 UPDATE users

@@ -153,13 +153,13 @@ func GenerateAPIKeyToken(n int) (*APIKeyDetails, error) {
 	}, nil
 }
 
-func GenerateEmailOtpToken(n int) string {
-	const digits = "0123456789"
+func GenerateToken(n int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	otp := make([]byte, n)
 
 	for i := range otp {
-		num, _ := rand.Int(rand.Reader, big.NewInt(int64(len(digits))))
-		otp[i] = digits[num.Int64()]
+		num, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		otp[i] = charset[num.Int64()]
 	}
 
 	return string(otp)

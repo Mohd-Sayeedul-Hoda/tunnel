@@ -26,7 +26,7 @@ type Querier interface {
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error)
 	UpdateUserFull(ctx context.Context, arg UpdateUserFullParams) (User, error)
 	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (User, error)
-	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	VerifyOtp(ctx context.Context, id int32) error
 	VerifyUserEmail(ctx context.Context, id int32) error
 }
