@@ -232,11 +232,11 @@ func SendForgotPasswordLink(cfg *config.Config, userRepo repositories.UserRepo, 
 			return
 		}
 
-		encodedToken := base64.StdEncoding.EncodeToString(fmt.Appendf([]byte{}, "%s_%s", req.Email, otp))
+		encodedToken := base64.StdEncoding.EncodeToString(fmt.Appendf([]byte{}, "%s|%s", req.Email, otp))
 
 		//TODO: change route here
 		//WARN: remove and email smtp client to send email
-		url := fmt.Sprintf("http://localhost:3000/forgot-password?token=%s", encodedToken)
+		url := fmt.Sprintf("http://localhost:5173/forgot-password?token=%s", encodedToken)
 		slog.Info("Email Otp", slog.String("email", req.Email), slog.String("url", url), slog.String("otp-type", string(models.ForgotPasswordOtpType)))
 
 		respondWithJSON(w, r, http.StatusCreated, envelope{
@@ -269,8 +269,7 @@ func VerifyForgotPasswordLink(cfg *config.Config, userRepo repositories.UserRepo
 			return
 		}
 
-		tokenData := strings.Split(string(decodeByte), "_")
-		//WARN: validate this input
+		tokenData := strings.SplitN(string(decodeByte), "|", 2)
 		email := tokenData[0]
 		token := tokenData[1]
 

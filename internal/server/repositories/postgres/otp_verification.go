@@ -119,7 +119,7 @@ func (o *otpVerificationRepo) CountOtpsAfterUtcTime(email string, otpType models
 	defer cancel()
 
 	count, err := o.queries.CountOtpsAfterUtcTime(ctx, sqlc.CountOtpsAfterUtcTimeParams{
-		CreatedAt: pgtype.Timestamptz{Time: after},
+		CreatedAt: pgtype.Timestamptz{Time: after, Valid: true},
 		Email:     email,
 		Type:      string(otpType),
 	})

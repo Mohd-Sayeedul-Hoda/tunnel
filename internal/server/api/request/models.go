@@ -2,6 +2,7 @@ package request
 
 import (
 	"context"
+	"encoding/base64"
 	"strings"
 	"time"
 )
@@ -71,13 +72,43 @@ func (u *VerifyUserOTP) Valid(ctx context.Context, v *Valid) *Valid {
 
 	ValidEmail(v, u.Email)
 	v.Check(strings.TrimSpace(u.EmailOtp) != "", "email-otp", "otp should not be empty")
-
+	v.Check(len(u.EmailOtp) <= 200, "email-otp", "otp too long")
 	return v
 }
 
 func (u *ForgotPasswordVerify) Valid(ctx context.Context, v *Valid) *Valid {
 
 	v.Check(strings.TrimSpace(u.EmailOtp) != "", "email-otp", "otp should not be empty")
+	v.Check(len(u.EmailOtp) <= 200, "email-otp", "otp too long")
+
+	if v.Valid() {
+		decodedBytes, err := base64.StdEncoding.DecodeString(u.EmailOtp)
+		if err != nil {
+			v.AddError("email-otp", "otp format invalid")
+		} else {
+			decoded := string(decodedBytes)
+
+			if !strings.Contains(decoded, "|") {
+				v.AddError("email-otp", "otp format invalid")
+			} else {
+				parts := strings.SplitN(decoded, "|", 2)
+
+				if len(parts) != 2 {
+					v.AddError("email-otp", "otp format invalid")
+				}
+				email := strings.TrimSpace(parts[0])
+				token := parts[1]
+
+				ValidEmail(v, email)
+
+				if len(token) != 32 {
+					v.AddError("email-otp", "otp format invalid")
+				}
+				ValidAlphanumeric(v, token, "email-otp")
+			}
+		}
+	}
+
 	ValidPassword(v, u.Password)
 	return v
 }

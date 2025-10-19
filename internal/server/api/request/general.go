@@ -21,3 +21,15 @@ func ValidName(v *Valid, name string) {
 	v.Check(name != "", "name", "name should not be empty string")
 	v.Check(len(name) <= 300, "name", "name should be less then 300 character")
 }
+
+func ValidAlphanumeric(v *Valid, s string, fieldName string) {
+	v.Check(s != "", fieldName, fieldName+" should not be empty")
+	alphanumeric := true
+	for _, r := range s {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9')) {
+			alphanumeric = false
+			break
+		}
+	}
+	v.Check(alphanumeric, fieldName, fieldName+" must contain only letters and numbers")
+}
