@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/sqlc"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/sqlc"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
