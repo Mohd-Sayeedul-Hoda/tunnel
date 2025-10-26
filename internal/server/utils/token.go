@@ -166,6 +166,6 @@ func HashOtp(salt string, otp string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(combine)))
 }
 
-func HashAPI(key string) string {
+func HashAPIKey(key string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(key)))
 }

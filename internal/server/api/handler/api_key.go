@@ -42,7 +42,7 @@ func CreateAPIKey(apiKeyRepo repositories.APIRepo) http.Handler {
 			Name:        req.Name,
 			Prefix:      generatedKeyDetails.Prefix,
 			APIkeyToken: generatedKeyDetails.FullKey,
-			APIKeyHash:  utils.HashAPI(generatedKeyDetails.FullKey),
+			APIKeyHash:  utils.HashAPIKey(generatedKeyDetails.FullKey),
 			ExpireAt:    req.ExpiresAt,
 			UserId:      userDetails.UserID,
 		}
@@ -138,7 +138,7 @@ func VerifyAPIKey(apiKeyRepo repositories.APIRepo) http.Handler {
 			return
 		}
 
-		hashkey := utils.HashAPI(req.Key)
+		hashkey := utils.HashAPIKey(req.Key)
 		valid, err := apiKeyRepo.CheckAPIKeyValid(hashkey)
 		if err != nil {
 			ServerErrorResponse(w, r, err)
