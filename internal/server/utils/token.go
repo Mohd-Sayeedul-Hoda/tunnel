@@ -26,7 +26,6 @@ type TokenDetails struct {
 }
 
 type APIKeyDetails struct {
-	KeyHash string
 	Prefix  string
 	FullKey string
 }
@@ -128,28 +127,25 @@ func ValidateToken(token string, publicKey string) (*TokenDetails, error) {
 
 }
 
-func GenerateAPIKeyToken(n int) (*APIKeyDetails, error) {
+func GenerateAPIKeyToken(secretByteLength int) (*APIKeyDetails, error) {
 
-	uuid, err := uuid.NewV7()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize uuid: %w", err)
+	prefixBytes := make([]byte, 8)
+	if _, err := rand.Read(prefixBytes); err != nil {
+		return nil, fmt.Errorf("failed to generate prefix: %w", err)
 	}
-	prefix := "ak_" + uuid.String()[:8]
+	prefix := "ak_" + hex.EncodeToString(prefixBytes)
 
-	b := make([]byte, n)
-	_, err = rand.Read(b)
-	if err != nil {
-		return nil, err
+	secretBytes := make([]byte, secretByteLength)
+	if _, err := rand.Read(secretBytes); err != nil {
+		return nil, fmt.Errorf("failed to generate secret: %w", err)
 	}
-	tokenPart := base64.RawURLEncoding.EncodeToString(b)
+	tokenPart := base64.RawURLEncoding.EncodeToString(secretBytes)
 
-	fullKey := prefix + "." + tokenPart
-	hash := sha256.Sum256([]byte(b))
+	fullKey := prefix + tokenPart
 
 	return &APIKeyDetails{
 		Prefix:  prefix,
 		FullKey: fullKey,
-		KeyHash: hex.EncodeToString(hash[:]),
 	}, nil
 }
 
@@ -168,4 +164,8 @@ func GenerateToken(n int) string {
 func HashOtp(salt string, otp string) string {
 	combine := salt + otp
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(combine)))
+}
+
+func HashAPI(key string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(key)))
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/encoding"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 )
 
 func HandleRoot() http.HandlerFunc {

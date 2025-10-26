@@ -4,7 +4,7 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 )
 
 func NewLogger(cfg *config.Config, out io.Writer) *slog.Logger {

@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CheckAPIKeyValid(ctx context.Context, apiKey string) (bool, error)
 	CountOtpsAfterUtcTime(ctx context.Context, arg CountOtpsAfterUtcTimeParams) (int64, error)
 	CreateAPIKey(ctx context.Context, arg CreateAPIKeyParams) (CreateAPIKeyRow, error)
 	CreateOtp(ctx context.Context, arg CreateOtpParams) error

@@ -11,8 +11,8 @@ import (
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/handler"
 	tools "github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/utils"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/utils"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 )
 
 type logRespWriter struct {

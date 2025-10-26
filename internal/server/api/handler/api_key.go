@@ -42,7 +42,7 @@ func CreateAPIKey(apiKeyRepo repositories.APIRepo) http.Handler {
 			Name:        req.Name,
 			Prefix:      generatedKeyDetails.Prefix,
 			APIkeyToken: generatedKeyDetails.FullKey,
-			APIKeyHash:  generatedKeyDetails.KeyHash,
+			APIKeyHash:  utils.HashAPI(generatedKeyDetails.FullKey),
 			ExpireAt:    req.ExpiresAt,
 			UserId:      userDetails.UserID,
 		}
@@ -117,5 +117,38 @@ func DeleteAPIKey(apiKeyRepo repositories.APIRepo) http.Handler {
 		respondWithJSON(w, r, http.StatusOK, envelope{
 			"status": "success",
 		})
+	})
+}
+
+func VerifyAPIKey(apiKeyRepo repositories.APIRepo) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		v := request.NewValidator()
+		var req request.VerifyAPIKey
+		err := encoding.Validated(w, r, v, &req)
+		if err != nil {
+			switch {
+			case !v.Valid():
+				failedValidationResponse(w, r, v)
+			case errors.Is(err, encoding.ErrInvalidRequest):
+				badRequestResponse(w, r, err)
+			default:
+				ServerErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		hashkey := utils.HashAPI(req.Key)
+		valid, err := apiKeyRepo.CheckAPIKeyValid(hashkey)
+		if err != nil {
+			ServerErrorResponse(w, r, err)
+			return
+		}
+
+		respondWithJSON(w, r, http.StatusOK, envelope{
+			"status": "success",
+			"valid":  valid,
+		})
+
 	})
 }

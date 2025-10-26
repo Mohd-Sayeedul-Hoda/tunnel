@@ -122,3 +122,16 @@ func (a *apiKeyRepo) DeleteAPIKey(userId, keyId int) error {
 
 	return nil
 }
+
+func (a *apiKeyRepo) CheckAPIKeyValid(apikey string) (bool, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	valid, err := a.queries.CheckAPIKeyValid(ctx, apikey)
+	if err != nil {
+		return false, err
+	}
+
+	return valid, nil
+}

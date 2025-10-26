@@ -10,11 +10,11 @@ import (
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/request"
 	tools "github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api/utils"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/models"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/postgres"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/utils"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/password"
 )
 

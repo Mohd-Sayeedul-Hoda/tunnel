@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 
 	"github.com/redis/go-redis/v9"
 )

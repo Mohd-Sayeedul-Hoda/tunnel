@@ -11,3 +11,9 @@ LIMIT $2 OFFSET $3;
 
 -- name: DeleteAPIKey :execrows
 DELETE FROM api_keys where id = $1 and user_id = $2;
+
+-- name: CheckAPIKeyValid :one
+SELECT EXISTS (
+    SELECT 1 FROM api_keys WHERE api_key = $1
+) AS valid;
+

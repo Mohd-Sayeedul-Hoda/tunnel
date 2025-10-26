@@ -11,6 +11,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkAPIKeyValid = `-- name: CheckAPIKeyValid :one
+SELECT EXISTS (
+    SELECT 1 FROM api_keys WHERE api_key = $1
+) AS valid
+`
+
+func (q *Queries) CheckAPIKeyValid(ctx context.Context, apiKey string) (bool, error) {
+	row := q.db.QueryRow(ctx, checkAPIKeyValid, apiKey)
+	var valid bool
+	err := row.Scan(&valid)
+	return valid, err
+}
+
 const createAPIKey = `-- name: CreateAPIKey :one
 INSERT INTO api_keys (name, prefix, api_key, user_id, permissions, expires_at)
 VALUES ($1, $2, $3, $4, $5, $6)

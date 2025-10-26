@@ -42,7 +42,7 @@ type APIKeys struct {
 
 func (u *APIKeys) Valid(ctx context.Context, v *Valid) *Valid {
 	ValidName(v, u.Name)
-	if u.ExpiresAt.Before(time.Now()) {
+	if !u.ExpiresAt.IsZero() && u.ExpiresAt.Before(time.Now()) {
 		v.AddError("expires_at", "must be in the future")
 	}
 
@@ -110,5 +110,16 @@ func (u *ForgotPasswordVerify) Valid(ctx context.Context, v *Valid) *Valid {
 	}
 
 	ValidPassword(v, u.Password)
+	return v
+}
+
+type VerifyAPIKey struct {
+	Key string `json:"api_key"`
+}
+
+func (u *VerifyAPIKey) Valid(ctx context.Context, v *Valid) *Valid {
+	v.Check(u.Key != "", "api_key", "api key should not be empty")
+	v.Check(len(u.Key) <= 200, "api_key", "api key too long")
+
 	return v
 }

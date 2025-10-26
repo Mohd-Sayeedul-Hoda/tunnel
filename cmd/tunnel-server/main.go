@@ -14,9 +14,9 @@ import (
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache/redis"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/db"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/postgres"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/log"
 
 	"github.com/joho/godotenv"
@@ -56,6 +56,12 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	}
 	slog.Info("database connection pool establish")
 
+	cacheRepo, err := redis.NewRedisCacheRepo(cfg)
+	if err != nil {
+		return err
+	}
+	slog.Info("redis connection establish")
+
 	userRepo, err := postgres.NewUserRepo(pgPool)
 	if err != nil {
 		return err
@@ -70,11 +76,6 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	if err != nil {
 		return err
 	}
-	cacheRepo, err := redis.NewRedisCacheRepo(cfg)
-	if err != nil {
-		return err
-	}
-	slog.Info("redis connection establish")
 
 	handler := api.NewHTTPServer(cfg, cacheRepo, userRepo, apiKeyRepo, emailOtpRepo)
 

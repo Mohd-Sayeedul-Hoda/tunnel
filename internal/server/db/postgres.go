@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
