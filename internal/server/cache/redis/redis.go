@@ -19,7 +19,7 @@ type redisRepo struct {
 	client *redis.Client
 }
 
-func NewRedisCacheRepo(cfg *config.Config) (*redisRepo, error) {
+func NewCacheRepo(cfg *config.Config) (*redisRepo, error) {
 	opts, err := redis.ParseURL(cfg.Cache.DSN)
 	if err != nil {
 		return nil, err

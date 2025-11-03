@@ -1,28 +1,49 @@
 package natserver
 
 import (
+	"context"
 	"io"
 	"log/slog"
+	"net"
+	"strconv"
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
 
 	"github.com/hashicorp/yamux"
 )
 
-func HandleConnection(cfg *config.Config, conn io.ReadWriteCloser) error {
+func ListenAndServer(ctx context.Context, w io.Writer, cfg *config.Config) error {
 
-	session, err := yamux.Server(conn, yamux.DefaultConfig())
+	listner, err := net.Listen("tcp", cfg.NatTcpServer.Host+":"+strconv.Itoa(cfg.NatTcpServer.Port))
 	if err != nil {
 		return err
 	}
+	defer listner.Close()
 
-	stream, err := session.Accept()
-	if err != nil {
-		return err
+	slog.Info("tcp server started", slog.String("addr", cfg.NatTcpServer.Host+":"+strconv.Itoa(cfg.NatTcpServer.Port)))
+	for {
+		conn, err := listner.Accept()
+		if err != nil {
+			slog.Error("failed to accept connection", slog.String("error", err.Error()))
+			continue
+		}
+
+		go func() {
+			defer conn.Close()
+			ManageConnection(conn, w, cfg)
+		}()
 	}
-	buf := make([]byte, 4)
-	stream.Read(buf)
-	slog.Info(string(buf))
+}
 
-	return nil
+func ManageConnection(conn net.Conn, w io.Writer, cfg *config.Config) {
+
+	yamuxConfig := yamux.DefaultConfig()
+	yamuxConfig.LogOutput = w
+	session, err := yamux.Server(conn, yamuxConfig)
+	if err != nil {
+		// happen when yamux config verfication failed
+		slog.Error("unable to open the yamux session closing tcp connection", slog.Any("yamux error", err.Error()))
+		conn.Close()
+		return
+	}
 }

@@ -12,8 +12,8 @@ import (
 
 	natserver "github.com/Mohd-Sayeedul-Hoda/tunnel/internal/nat-server"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/db"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/log"
-	"github.com/hashicorp/yamux"
 
 	"github.com/joho/godotenv"
 )
@@ -25,7 +25,7 @@ func main() {
 	getenv = func(s string) string {
 		return os.Getenv(s)
 	}
-	err := run(context.Background(), getenv, os.Args, os.Stdin)
+	err := run(context.Background(), getenv, os.Args, os.Stdout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "fatal error while starting the application: %s\n", err)
 		os.Exit(1)
@@ -44,27 +44,22 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 
 	slog.SetDefault(log.NewLogger(cfg, w))
 
-	listner, err := net.Listen("tcp", cfg.NatServer.Host+":"+strconv.Itoa(cfg.NatServer.Port))
-	if err != nil {
-		return err
-	}
-	slog.Info("tcp server started")
+	pgPool, err := db.OpenPostgresConn(ctx, cfg)
 
-	Q serverErrors := make(chan error, 1)
-		conn, err := listner.Accept()
-		if err != nil {
-			serverErrors <- err
-		}
+	serverErrors := make(chan error, 1)
 
-		natserver.HandleConnection(cfg, conn)
+	go func() {
+		slog.Info("tcp server running")
+		err := natserver.ListenAndServer(ctx, w, cfg)
+		serverErrors <- err
 	}()
 
 	select {
 	case <-ctx.Done():
 		slog.Info("nat server shutdown initiated", slog.String("reason", "context cancelled"))
-		return listner.Close()
 	case err := <-serverErrors:
 		return err
 	}
 
+	return nil
 }

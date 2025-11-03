@@ -14,7 +14,11 @@ type Config struct {
 		Port int
 		Host string
 	}
-	NatServer struct {
+	NatTcpServer struct {
+		Port int
+		Host string
+	}
+	NatHttpServer struct {
 		Port int
 		Host string
 	}
@@ -75,8 +79,10 @@ func InitializeConfig(getenv func(string) string, args []string) (*Config, error
 
 	cfg.Server.Port = getEnvInt(getenv, "PORT", 8000)
 	cfg.Server.Host = getEnvString(getenv, "HOST", "localhost")
-	cfg.NatServer.Host = getEnvString(getenv, "NAT-HOST", "localhost")
-	cfg.NatServer.Port = getEnvInt(getenv, "NAT-PORT", 31000)
+	cfg.NatTcpServer.Host = getEnvString(getenv, "NAT-HOST", "localhost")
+	cfg.NatTcpServer.Port = getEnvInt(getenv, "NAT_PORT", 31000)
+	cfg.NatHttpServer.Host = getEnvString(getenv, "NAT_HTTP_HOST", "localhost")
+	cfg.NatHttpServer.Port = getEnvInt(getenv, "NAT_HTTP_PORT", 32000)
 
 	cfg.DB.DSN = getEnvString(getenv, "DB_DSN", "")
 	cfg.DB.MaxOpenConn = getEnvInt(getenv, "DB-MAX-OPEN-CONNS", 10)

@@ -14,9 +14,9 @@ import (
 
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/api"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/cache/redis"
-	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/db"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/server/repositories/postgres"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/config"
+	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/db"
 	"github.com/Mohd-Sayeedul-Hoda/tunnel/internal/shared/log"
 
 	"github.com/joho/godotenv"
@@ -56,7 +56,7 @@ func run(ctx context.Context, getenv func(string) string, args []string, w io.Wr
 	}
 	slog.Info("database connection pool establish")
 
-	cacheRepo, err := redis.NewRedisCacheRepo(cfg)
+	cacheRepo, err := redis.NewCacheRepo(cfg)
 	if err != nil {
 		return err
 	}

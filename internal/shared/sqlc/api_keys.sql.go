@@ -75,6 +75,27 @@ func (q *Queries) DeleteAPIKey(ctx context.Context, arg DeleteAPIKeyParams) (int
 	return result.RowsAffected(), nil
 }
 
+const getAPIKey = `-- name: GetAPIKey :one
+SELECT id, name, prefix, api_key, user_id, permissions, metadata, expires_at, created_at FROM api_keys WHERE api_key = $1
+`
+
+func (q *Queries) GetAPIKey(ctx context.Context, apiKey string) (ApiKey, error) {
+	row := q.db.QueryRow(ctx, getAPIKey, apiKey)
+	var i ApiKey
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Prefix,
+		&i.ApiKey,
+		&i.UserID,
+		&i.Permissions,
+		&i.Metadata,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listAPIKeys = `-- name: ListAPIKeys :many
 SELECT id, name, prefix, api_key, user_id, permissions, expires_at, created_at
 FROM api_keys

@@ -16,6 +16,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteAPIKey(ctx context.Context, arg DeleteAPIKeyParams) (int64, error)
 	DeleteUser(ctx context.Context, id int32) (int64, error)
+	GetAPIKey(ctx context.Context, apiKey string) (ApiKey, error)
 	GetOtp(ctx context.Context, arg GetOtpParams) (OtpVerification, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id int32) (User, error)

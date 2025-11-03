@@ -17,3 +17,5 @@ SELECT EXISTS (
     SELECT 1 FROM api_keys WHERE api_key = $1
 ) AS valid;
 
+-- name: GetAPIKey :one
+SELECT * FROM api_keys WHERE api_key = $1;
